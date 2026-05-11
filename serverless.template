@@ -42,8 +42,188 @@
           }
         }
       }
+    },
+    "SchedulerInvokeRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "InvokeApiDestination",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "events:InvokeApiDestination",
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "ScrapeApiDestination",
+                        "Arn"
+                      ]
+                    },
+                    {
+                      "Fn::GetAtt": [
+                        "SendReportsApiDestination",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+        "EventBridgeInvokeApiDestinationRole": {
+          "Type": "AWS::IAM::Role",
+          "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": "events.amazonaws.com"
+                  },
+                  "Action": "sts:AssumeRole"
+                }
+              ]
+            },
+            "Policies": [
+              {
+                "PolicyName": "InvokeApiDestination",
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": "events:InvokeApiDestination",
+                     "Resource": [
+                       {
+                         "Fn::GetAtt": [
+                           "ScrapeApiDestination",
+                           "Arn"
+                         ]
+                       },
+                       {
+                         "Fn::GetAtt": [
+                           "SendReportsApiDestination",
+                           "Arn"
+                         ]
+                       }
+                     ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+         },
+    "SchedulerApiConnection": {
+      "Type": "AWS::Events::Connection",
+      "Properties": {
+        "AuthorizationType": "API_KEY",
+        "AuthParameters": {
+          "ApiKeyAuthParameters": {
+            "ApiKeyName": "X-Api-Key",
+            "ApiKeyValue": "{{resolve:secretsmanager:sartorial-watcher/prod:SecretString:SchedulerApiKey}}"
+          }
+        }
+      }
+    },
+    "ScrapeApiDestination": {
+      "Type": "AWS::Events::ApiDestination",
+      "Properties": {
+        "ConnectionArn": {
+          "Fn::GetAtt": [
+            "SchedulerApiConnection",
+            "Arn"
+          ]
+        },
+        "InvocationEndpoint": {
+          "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/scrape"
+        },
+        "HttpMethod": "POST"
+      }
+    },
+    "ScrapeScheduleRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "cron(0 10,16,22 * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Id": "ScrapeTarget",
+            "Arn": {
+              "Fn::GetAtt": [
+                "ScrapeApiDestination",
+                "Arn"
+              ]
+            },
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "EventBridgeInvokeApiDestinationRole",
+                "Arn"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "SendReportsApiDestination": {
+      "Type": "AWS::Events::ApiDestination",
+      "Properties": {
+        "ConnectionArn": {
+          "Fn::GetAtt": [
+            "SchedulerApiConnection",
+            "Arn"
+          ]
+        },
+        "InvocationEndpoint": {
+          "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/send_reports"
+        },
+        "HttpMethod": "POST"
+      }
+    },
+    "SendReportsScheduleRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "cron(0 12 * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Id": "SendReportsTarget",
+            "Arn": {
+              "Fn::GetAtt": [
+                "SendReportsApiDestination",
+                "Arn"
+              ]
+            },
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "EventBridgeInvokeApiDestinationRole",
+                "Arn"
+              ]
+            }
+          }
+        ]
+      }
     }
-  },
+   },
   "Outputs": {
     "ApiURL": {
       "Description": "API endpoint URL for Prod environment",

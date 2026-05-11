@@ -10,12 +10,15 @@ public class TelegramMessageFactory(ILogger<TelegramMessageFactory> logger)
     public async Task<string> CreateMessage(ReportMessageContext context)
     {
         logger.LogInformation("Started creating a Telegram message content");
-        var products = context.Products;
+        var oldProducts = context.Products;
+        var newProducts = context.ProductsAddedSinceLastReport;
+        
         var newDealIds = context.ProductsAddedSinceLastReport.Select(product => product.Id).ToList();
+        
         var newCottonDeals =
-            products.Where(EligibleToCottonNewDeal).OrderByPrice().ToList();
-        var newLinenDeals = products.Where(EligibleToLinenNewDeal).OrderByPrice().ToList();
-        var otherDeals = products.Where(product => EligibleToOtherDeal(product, newDealIds)).OrderByPrice().Take(5)
+            newProducts.Where(EligibleToCottonNewDeal).OrderByPrice().ToList();
+        var newLinenDeals = newProducts.Where(EligibleToLinenNewDeal).OrderByPrice().ToList();
+        var otherDeals = oldProducts.Where(product => EligibleToOtherDeal(product, newDealIds)).OrderByPrice().Take(5)
             .ToList();
         logger.LogInformation("Got {CottonCount} cotton deals, {LinenCount} linen deals and {OtherCount} other deals",
             newCottonDeals.Count, newLinenDeals.Count, otherDeals.Count);

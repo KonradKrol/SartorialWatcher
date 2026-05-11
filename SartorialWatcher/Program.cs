@@ -107,7 +107,7 @@ host.MapPost("/scrape", async (HttpRequest request,
 
     var token = request.Headers["X-Api-Key"];
 
-    if (token != configuration["Scheduler:ApiKey"])
+    if (token != configuration["SchedulerApiKey"])
     {
         return Results.Unauthorized();
     }
@@ -125,7 +125,7 @@ host.MapPost("/send_reports", async (HttpRequest request,
 
     var token = request.Headers["X-Api-Key"];
 
-    if (token != configuration["Scheduler:ApiKey"])
+    if (token != configuration["SchedulerApiKey"])
     {
         return Results.Unauthorized();
     }
