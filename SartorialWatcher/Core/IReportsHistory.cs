@@ -1,7 +1,12 @@
 namespace SartorialWatcher.Core;
 
+public class Report
+{
+    public DateTimeOffset Timestamp { get; set; }
+}
+
 public interface IReportsHistory
 {
-    Task RegisterNewReportAsync(DateTimeOffset dateTimeOffset);
-    Task<DateTimeOffset> GetLatestReportDateAsync();
+    Task RegisterNewReportAsync(Report report);
+    Task<DateTimeOffset?> GetLatestReportDateAsync();
 }

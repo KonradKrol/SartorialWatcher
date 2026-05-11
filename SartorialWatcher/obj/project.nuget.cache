@@ -1,12 +1,21 @@
 {
   "version": 2,
-  "dgSpecHash": "3E8hlJxmXTc=",
+  "dgSpecHash": "w/hDJXdnnCU=",
   "success": true,
   "projectFilePath": "/home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/SartorialWatcher.csproj",
   "expectedPackageFiles": [
+    "/home/konrad/.nuget/packages/amazon.lambda.apigatewayevents/3.0.0/amazon.lambda.apigatewayevents.3.0.0.nupkg.sha512",
+    "/home/konrad/.nuget/packages/amazon.lambda.applicationloadbalancerevents/3.0.0/amazon.lambda.applicationloadbalancerevents.3.0.0.nupkg.sha512",
+    "/home/konrad/.nuget/packages/amazon.lambda.aspnetcoreserver/10.0.0/amazon.lambda.aspnetcoreserver.10.0.0.nupkg.sha512",
+    "/home/konrad/.nuget/packages/amazon.lambda.aspnetcoreserver.hosting/2.0.0/amazon.lambda.aspnetcoreserver.hosting.2.0.0.nupkg.sha512",
+    "/home/konrad/.nuget/packages/amazon.lambda.core/3.0.0/amazon.lambda.core.3.0.0.nupkg.sha512",
+    "/home/konrad/.nuget/packages/amazon.lambda.logging.aspnetcore/5.0.0/amazon.lambda.logging.aspnetcore.5.0.0.nupkg.sha512",
+    "/home/konrad/.nuget/packages/amazon.lambda.runtimesupport/2.0.0/amazon.lambda.runtimesupport.2.0.0.nupkg.sha512",
+    "/home/konrad/.nuget/packages/amazon.lambda.serialization.systemtextjson/3.0.0/amazon.lambda.serialization.systemtextjson.3.0.0.nupkg.sha512",
     "/home/konrad/.nuget/packages/anglesharp/1.4.0/anglesharp.1.4.0.nupkg.sha512",
     "/home/konrad/.nuget/packages/awssdk.core/4.0.6.1/awssdk.core.4.0.6.1.nupkg.sha512",
     "/home/konrad/.nuget/packages/awssdk.dynamodbv2/4.0.18.1/awssdk.dynamodbv2.4.0.18.1.nupkg.sha512",
+    "/home/konrad/.nuget/packages/awssdk.secretsmanager/4.0.4.20/awssdk.secretsmanager.4.0.4.20.nupkg.sha512",
     "/home/konrad/.nuget/packages/microsoft.extensions.configuration/10.0.7/microsoft.extensions.configuration.10.0.7.nupkg.sha512",
     "/home/konrad/.nuget/packages/microsoft.extensions.configuration.abstractions/10.0.7/microsoft.extensions.configuration.abstractions.10.0.7.nupkg.sha512",
     "/home/konrad/.nuget/packages/microsoft.extensions.configuration.binder/10.0.7/microsoft.extensions.configuration.binder.10.0.7.nupkg.sha512",
@@ -35,7 +44,9 @@
     "/home/konrad/.nuget/packages/microsoft.extensions.options/10.0.7/microsoft.extensions.options.10.0.7.nupkg.sha512",
     "/home/konrad/.nuget/packages/microsoft.extensions.options.configurationextensions/10.0.7/microsoft.extensions.options.configurationextensions.10.0.7.nupkg.sha512",
     "/home/konrad/.nuget/packages/microsoft.extensions.primitives/10.0.7/microsoft.extensions.primitives.10.0.7.nupkg.sha512",
-    "/home/konrad/.nuget/packages/system.diagnostics.eventlog/10.0.7/system.diagnostics.eventlog.10.0.7.nupkg.sha512"
+    "/home/konrad/.nuget/packages/snapshotrestore.registry/1.0.2/snapshotrestore.registry.1.0.2.nupkg.sha512",
+    "/home/konrad/.nuget/packages/system.diagnostics.eventlog/10.0.7/system.diagnostics.eventlog.10.0.7.nupkg.sha512",
+    "/home/konrad/.nuget/packages/microsoft.netcore.app.host.linux-x64/10.0.7/microsoft.netcore.app.host.linux-x64.10.0.7.nupkg.sha512"
   ],
   "logs": []
 }

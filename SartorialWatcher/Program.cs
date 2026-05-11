@@ -1,44 +1,73 @@
+using System.Text.Json;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.Runtime;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using SartorialWatcher;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SartorialWatcher.Core;
+using SartorialWatcher.Infrastructure.ReportsHistory;
 using SartorialWatcher.Infrastructure.ScrapingConfigurations;
 using SartorialWatcher.Infrastructure.Storage;
 using SartorialWatcher.Messaging;
 using SartorialWatcher.Scrapers;
 using SartorialWatcher.Services;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddLogging();
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
 builder.Services.AddSingleton<AppRunner>();
+Console.WriteLine(
+    $"Environment: {builder.Environment.EnvironmentName}");
+if (builder.Environment.IsProduction())
+{
+    var secretName =
+        Environment.GetEnvironmentVariable("SECRET_NAME")
+        ?? throw new InvalidOperationException();
+
+    var secretsClient = new AmazonSecretsManagerClient();
+
+    var secretResponse =
+        await secretsClient.GetSecretValueAsync(
+            new GetSecretValueRequest
+            {
+                SecretId = secretName
+            });
+
+    var secrets =
+        JsonSerializer.Deserialize<Dictionary<string, string>>(
+            secretResponse.SecretString!)
+        ?? throw new InvalidOperationException("Secrets deserialization failed");
+
+    builder.Configuration.AddInMemoryCollection(secrets);
+}
 
 builder.Configuration.AddUserSecrets<Program>();
 
-var awsSection = builder.Configuration.GetSection("Aws");
-var accessKey = awsSection["AccessKey"];
-var secretKey = awsSection["SecretKey"];
-var region = awsSection["Region"];
+var region = builder.Configuration["Aws:Region"];
 if (string.IsNullOrWhiteSpace(region))
 {
     throw new InvalidOperationException(
-        "AWS region is missing.");
+        "AWS region is missing");
 }
+
 builder.Services.AddSingleton<IAmazonDynamoDB>(_ =>
 {
-    var credentials =
-        new BasicAWSCredentials(accessKey, secretKey);
-
     var config = new AmazonDynamoDBConfig
     {
         RegionEndpoint = RegionEndpoint.GetBySystemName(region)
     };
 
-    return new AmazonDynamoDBClient(credentials, config);
+    return new AmazonDynamoDBClient(config);
 });
 
 builder.Services.AddScoped<IScraper, WolczankaScraper>();
@@ -56,16 +85,54 @@ builder.Services.AddScoped<IScrapingConfigurations, WolczankaOnly>(_ =>
     ]));
 // builder.Services.AddScoped<IScrapingStorage, InMemoryStorage>();
 
+builder.Services.AddScoped<IReportsHistory, DynamoReportsHistory>();
 builder.Services.AddScoped<IScrapingStorage, DynamoScrapingStorage>();
 builder.Services.AddScoped<PerformScrapingService>();
 builder.Services.AddScoped<SendReportService>();
 
-builder.Services.AddLogging();
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-
 builder.Services.AddHttpClient();
 
-using var host = builder.Build();
+builder.Services.AddAWSLambdaHosting(
+    LambdaEventSource.RestApi);
 
-await host.Services.GetRequiredService<AppRunner>().RunAsync();
+await using var host = builder.Build();
+
+host.MapGet("/health", () => Results.Ok());
+
+host.MapPost("/scrape", async (HttpRequest request,
+    IConfiguration configuration, PerformScrapingService performScrapingService, ILoggerFactory loggerFactory) =>
+{
+    var logger = loggerFactory.CreateLogger("Http.Scrape.Post");
+    logger.LogInformation("Requested to perform scraping");
+
+    var token = request.Headers["X-Api-Key"];
+
+    if (token != configuration["Scheduler:ApiKey"])
+    {
+        return Results.Unauthorized();
+    }
+
+    var products = (await performScrapingService.Invoke()).ToList();
+    logger.LogInformation("Scraped {ProductsCount}", products.Count);
+    return Results.Ok(new { ScrapedProductsCount = products.Count });
+});
+
+host.MapPost("/send_reports", async (HttpRequest request,
+    IConfiguration configuration, SendReportService sendReportService, ILoggerFactory loggerFactory) =>
+{
+    var logger = loggerFactory.CreateLogger("Http.SendReports.Post");
+    logger.LogInformation("Requested to send the report");
+
+    var token = request.Headers["X-Api-Key"];
+
+    if (token != configuration["Scheduler:ApiKey"])
+    {
+        return Results.Unauthorized();
+    }
+
+    var sent = await sendReportService.Invoke();
+    logger.LogInformation("Tried to sent the report. Result: {HasSent}", sent);
+    return Results.Ok(new { Sent = sent });
+});
+
+host.Run();

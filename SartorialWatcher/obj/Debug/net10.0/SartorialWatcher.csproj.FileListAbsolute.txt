@@ -98,3 +98,13 @@
 /home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/obj/Debug/net10.0/ref/SartorialWatcher.dll
 /home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/bin/Debug/net10.0/AWSSDK.Core.dll
 /home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/bin/Debug/net10.0/AWSSDK.DynamoDBv2.dll
+/home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/bin/Debug/net10.0/Amazon.Lambda.APIGatewayEvents.dll
+/home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/bin/Debug/net10.0/Amazon.Lambda.ApplicationLoadBalancerEvents.dll
+/home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/bin/Debug/net10.0/Amazon.Lambda.AspNetCoreServer.dll
+/home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/bin/Debug/net10.0/Amazon.Lambda.AspNetCoreServer.Hosting.dll
+/home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/bin/Debug/net10.0/Amazon.Lambda.Core.dll
+/home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/bin/Debug/net10.0/Amazon.Lambda.Logging.AspNetCore.dll
+/home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/bin/Debug/net10.0/Amazon.Lambda.RuntimeSupport.dll
+/home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/bin/Debug/net10.0/Amazon.Lambda.Serialization.SystemTextJson.dll
+/home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/bin/Debug/net10.0/AWSSDK.SecretsManager.dll
+/home/konrad/programming-projects/learning/aspnet/SartorialWatcher/SartorialWatcher/bin/Debug/net10.0/SnapshotRestore.Registry.dll

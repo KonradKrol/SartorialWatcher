@@ -1,0 +1,55 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Description": "Sartorial Watcher API",
+  "Parameters": {},
+  "Conditions": {},
+  "Resources": {
+    "SartorialWatcherFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "SartorialWatcher",
+        "Runtime": "dotnet10",
+        "CodeUri": "",
+        "MemorySize": 512,
+        "Timeout": 60,
+        "Role": null,
+        "Policies": [
+          "AWSLambdaBasicExecutionRole",
+          "AmazonDynamoDBFullAccess",
+          "SecretsManagerReadWrite"
+        ],
+          "Environment":
+          {
+          "Variables": {
+          "SECRET_NAME": "sartorial-watcher/prod"
+          }
+          },
+        "Events": {
+          "ProxyResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/{proxy+}",
+              "Method": "ANY"
+            }
+          },
+          "RootResource": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/",
+              "Method": "ANY"
+            }
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ApiURL": {
+      "Description": "API endpoint URL for Prod environment",
+      "Value": {
+        "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+      }
+    }
+  }
+}

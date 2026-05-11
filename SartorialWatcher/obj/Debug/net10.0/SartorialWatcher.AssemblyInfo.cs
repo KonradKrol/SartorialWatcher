@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SartorialWatcher")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8ed57a7743004c8490a623de3f61457006e63e77")]
 [assembly: System.Reflection.AssemblyProductAttribute("SartorialWatcher")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SartorialWatcher")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

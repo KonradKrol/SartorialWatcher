@@ -40,6 +40,8 @@ public class PerformScrapingService(
             }
         }
 
+        products = products.ToHashSet().ToList();
+
         logger.LogInformation("Scraped {ProductsCount} new products", products.Count);
 
         return products;
