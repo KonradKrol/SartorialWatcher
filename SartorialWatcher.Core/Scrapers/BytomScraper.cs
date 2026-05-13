@@ -58,7 +58,7 @@ public class BytomScraper(HttpClient http) : IScraper
             }
 
             var tags = new List<string>();
-            var materialContent = productDoc.QuerySelector("#collapse_material > div > p")?.TextContent.Trim();
+            var materialContent = productDoc.QuerySelector("#collapse_description > div > p:nth-child(3)")?.TextContent.Trim();
             if (materialContent is not null)
             {
                 if (materialContent.Contains("Bawełna") || materialContent.Contains("bawełna") ||
@@ -121,10 +121,10 @@ public class BytomScraper(HttpClient http) : IScraper
 
             var product = new ProductSnapshot
             {
-                Id = id,
+                Id = $"BYT-{id}",
                 Name = name,
                 Description = description,
-                Brand = "Wólczanka",
+                Brand = "Bytom",
                 Url = href,
                 CurrentPrice = currentPrice,
                 OriginalPrice = originalPrice ?? currentPrice,

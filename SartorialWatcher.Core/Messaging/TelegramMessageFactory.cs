@@ -10,15 +10,15 @@ public class TelegramMessageFactory(ILogger<TelegramMessageFactory> logger)
     public async Task<string> CreateMessage(ReportMessageContext context)
     {
         logger.LogInformation("Started creating a Telegram message content");
-        var oldProducts = context.Products;
         var newProducts = context.ProductsAddedSinceLastReport;
-        
+
         var newDealIds = context.ProductsAddedSinceLastReport.Select(product => product.Id).ToList();
-        
+        var oldProducts = context.Products.Where(product => !newDealIds.Contains(product.Id)).ToList();
+
         var newCottonDeals =
             newProducts.Where(EligibleToCottonNewDeal).OrderByPrice().ToList();
         var newLinenDeals = newProducts.Where(EligibleToLinenNewDeal).OrderByPrice().ToList();
-        var otherDeals = oldProducts.Where(product => EligibleToOtherDeal(product, newDealIds)).OrderByPrice().Take(5)
+        var otherDeals = oldProducts.Where(EligibleToOtherDeal).OrderByPrice().Take(5)
             .ToList();
         logger.LogInformation("Got {CottonCount} cotton deals, {LinenCount} linen deals and {OtherCount} other deals",
             newCottonDeals.Count, newLinenDeals.Count, otherDeals.Count);
@@ -105,15 +105,32 @@ public class TelegramMessageFactory(ILogger<TelegramMessageFactory> logger)
         }
     }
 
-
-    private static bool EligibleToCottonNewDeal(ProductSnapshot product) =>
-        product.Tags.Contains("Bawełna") && product.CurrentPrice < 120m && product.Discount >= 0.3m;
-
-    private static bool EligibleToLinenNewDeal(ProductSnapshot product) =>
-        product.Tags.Contains("Len") && product.Discount >= 0.3m;
-
-    private static bool EligibleToOtherDeal(ProductSnapshot product, List<string> newDealIds)
+    private static bool EligibleToCottonNewDeal(ProductSnapshot product)
     {
-        return !newDealIds.Contains(product.Id) && product.Discount > 0;
+        if (product.Brand == "Bytom")
+        {
+            return product.Tags.Contains("Bawełna") && product.CurrentPrice < 200m && product.Discount >= 0.3m;
+        }
+        else
+        {
+            return product.Tags.Contains("Bawełna") && product.CurrentPrice < 120m && product.Discount >= 0.3m;
+        }
+    }
+
+    private static bool EligibleToLinenNewDeal(ProductSnapshot product)
+    {
+        if (product.Brand == "Bytom")
+        {
+            return product.Tags.Contains("Len") && product.Discount >= 0.15m;
+        }
+        else
+        {
+            return product.Tags.Contains("Len") && product.Discount >= 0.3m;
+        }
+    }
+
+    private static bool EligibleToOtherDeal(ProductSnapshot product)
+    {
+        return product.Discount > 0;
     }
 }

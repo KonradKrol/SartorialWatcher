@@ -104,7 +104,7 @@ public class WolczankaScraper(HttpClient http) : IScraper
 
             var product = new ProductSnapshot
             {
-                Id = id,
+                Id = $"WOL-{id}",
                 Name = name,
                 Description = description,
                 Brand = "Wólczanka",
