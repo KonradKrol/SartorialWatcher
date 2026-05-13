@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Core;
+using Serilog.Formatting.Compact;
 
 namespace SartorialWatcher.Logging;
 
@@ -11,7 +12,8 @@ public static class SerilogFactories
         return new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
             .Enrich.FromLogContext()
-            .WriteTo.Console()
+            .WriteTo.Console(
+                new CompactJsonFormatter())
             .CreateLogger();
     }
 }

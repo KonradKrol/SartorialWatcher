@@ -23,13 +23,12 @@ using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddLogging();
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+// builder.Logging.ClearProviders();
+// builder.Logging.AddConsole();
 
 Log.Logger = SerilogFactories.CreateLogger(builder.Configuration);
 
 builder.Host.UseSerilog();
-
 
 builder.Services.AddSingleton<AppRunner>();
 Console.WriteLine(
