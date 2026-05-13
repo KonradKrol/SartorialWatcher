@@ -1,6 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SartorialWatcher", "SartorialWatcher\SartorialWatcher.csproj", "{B126FE39-F4FC-4DAE-AF29-7C9A3852533A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SartorialWatcher.Core", "SartorialWatcher.Core\SartorialWatcher.Core.csproj", "{B126FE39-F4FC-4DAE-AF29-7C9A3852533A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SartorialWatcher.Console", "SartorialWatcher.Console\SartorialWatcher.Console.csproj", "{0D27934A-6CD4-4466-BCB6-728B8DED53C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SartorialWatcher.Api", "SartorialWatcher.Api\SartorialWatcher.Api.csproj", "{F0949374-33F4-4964-B03B-852B24AA9417}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +16,13 @@ Global
 		{B126FE39-F4FC-4DAE-AF29-7C9A3852533A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B126FE39-F4FC-4DAE-AF29-7C9A3852533A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B126FE39-F4FC-4DAE-AF29-7C9A3852533A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D27934A-6CD4-4466-BCB6-728B8DED53C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D27934A-6CD4-4466-BCB6-728B8DED53C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D27934A-6CD4-4466-BCB6-728B8DED53C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D27934A-6CD4-4466-BCB6-728B8DED53C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0949374-33F4-4964-B03B-852B24AA9417}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0949374-33F4-4964-B03B-852B24AA9417}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0949374-33F4-4964-B03B-852B24AA9417}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0949374-33F4-4964-B03B-852B24AA9417}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
