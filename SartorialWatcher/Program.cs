@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Amazon;
 using Amazon.DynamoDBv2;
-using Amazon.Runtime;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Microsoft.AspNetCore.Builder;
@@ -15,15 +14,22 @@ using SartorialWatcher.Core;
 using SartorialWatcher.Infrastructure.ReportsHistory;
 using SartorialWatcher.Infrastructure.ScrapingConfigurations;
 using SartorialWatcher.Infrastructure.Storage;
+using SartorialWatcher.Logging;
 using SartorialWatcher.Messaging;
 using SartorialWatcher.Scrapers;
 using SartorialWatcher.Services;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddLogging();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+
+Log.Logger = SerilogFactories.CreateLogger(builder.Configuration);
+
+builder.Host.UseSerilog();
+
 
 builder.Services.AddSingleton<AppRunner>();
 Console.WriteLine(
@@ -103,7 +109,22 @@ host.MapPost("/scrape", async (HttpRequest request,
     IConfiguration configuration, PerformScrapingService performScrapingService, ILoggerFactory loggerFactory) =>
 {
     var logger = loggerFactory.CreateLogger("Http.Scrape.Post");
+
     logger.LogInformation("Requested to perform scraping");
+
+    // logger.LogInformation("Path: {Path}", request.Path);
+    // logger.LogInformation("Method: {Method}", request.Method);
+    // logger.LogInformation(
+    //     "Source IP: {SourceIp}",
+    //     request.HttpContext.Connection.RemoteIpAddress);
+
+    var headers = request.Headers.ToDictionary(
+        x => x.Key,
+        x => x.Value.ToString());
+
+    // logger.LogInformation(
+    //     "Headers: {Headers}",
+    //     JsonSerializer.Serialize(headers));
 
     var token = request.Headers["X-Api-Key"];
 

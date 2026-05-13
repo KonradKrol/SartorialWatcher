@@ -13,7 +13,6 @@
         "CodeUri": "",
         "MemorySize": 512,
         "Timeout": 60,
-        "Role": null,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonDynamoDBFullAccess",
@@ -26,66 +25,28 @@
           }
           },
         "Events": {
-          "ProxyResource": {
+          "ScrapeEndpoint": {
             "Type": "Api",
             "Properties": {
-              "Path": "/{proxy+}",
-              "Method": "ANY"
+              "Path": "/scrape",
+              "Method": "POST"
             }
           },
-          "RootResource": {
+            "HealthEndpoint": {
+              "Type": "Api",
+              "Properties": {
+                "Path": "/health",
+                "Method": "GET"
+              }
+            },
+          "SendReportsEndpoint": {
             "Type": "Api",
             "Properties": {
-              "Path": "/",
-              "Method": "ANY"
+              "Path": "/send_reports",
+              "Method": "POST"
             }
           }
         }
-      }
-    },
-    "SchedulerInvokeRole": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "scheduler.amazonaws.com"
-              },
-              "Action": "sts:AssumeRole"
-            }
-          ]
-        },
-        "Policies": [
-          {
-            "PolicyName": "InvokeApiDestination",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": "events:InvokeApiDestination",
-                  "Resource": [
-                    {
-                      "Fn::GetAtt": [
-                        "ScrapeApiDestination",
-                        "Arn"
-                      ]
-                    },
-                    {
-                      "Fn::GetAtt": [
-                        "SendReportsApiDestination",
-                        "Arn"
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        ]
       }
     },
         "EventBridgeInvokeApiDestinationRole": {
@@ -163,7 +124,7 @@
     "ScrapeScheduleRule": {
       "Type": "AWS::Events::Rule",
       "Properties": {
-        "ScheduleExpression": "cron(0 10,16,22 * * ? *)",
+        "ScheduleExpression": "cron(0 5,9,13,17,19 * * ? *)",
         "State": "ENABLED",
         "Targets": [
           {
@@ -202,7 +163,7 @@
     "SendReportsScheduleRule": {
       "Type": "AWS::Events::Rule",
       "Properties": {
-        "ScheduleExpression": "cron(0 12 * * ? *)",
+        "ScheduleExpression": "cron(5 9,13,17 * * ? *)",
         "State": "ENABLED",
         "Targets": [
           {
