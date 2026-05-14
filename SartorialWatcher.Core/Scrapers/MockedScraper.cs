@@ -32,7 +32,8 @@ public class MockedScraper : IScraper
                     Timestamp = default,
                     IsOutlet = true,
                 }
-            }
+            },
+            PagesCount = 1
         };
     }
 }

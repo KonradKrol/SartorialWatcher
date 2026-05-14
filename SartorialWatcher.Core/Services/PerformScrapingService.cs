@@ -3,12 +3,10 @@ using SartorialWatcher.Core.Core;
 
 namespace SartorialWatcher.Core.Services;
 
-// TODO: Co z faktem, że nie znamy nowych produktów? Nie wiemy, jakie były duplikaty.
 public class PerformScrapingService(
     IScrapingStorage storage,
     IScrapingConfigurations scrapingConfigurations,
     IScraperMapper scraperMapper,
-    // INewDealsTracker newDealsTracker,
     ILogger<PerformScrapingService> logger)
 {
     public async Task<IEnumerable<ProductSnapshot>> Invoke()

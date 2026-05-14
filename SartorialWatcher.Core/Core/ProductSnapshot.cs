@@ -1,6 +1,6 @@
 namespace SartorialWatcher.Core.Core;
 
-public class ProductSnapshot
+public class ProductSnapshot : IEquatable<ProductSnapshot>
 {
     public required string Id { get; set; }
     public required string Brand { get; set; }
@@ -19,6 +19,26 @@ public class ProductSnapshot
 
     public decimal Discount => 1 - decimal.Round(CurrentPrice / OriginalPrice * 100) / 100;
     public decimal Omnibus30DaysDiscount => 1 - decimal.Round(CurrentPrice / Omnibus30DaysPrice * 100) / 100;
+
+    public bool Equals(ProductSnapshot? other)
+    {
+        return Id == other?.Id;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is ProductSnapshot product)
+        {
+            return Id == product.Id;
+        }
+
+        return false;
+    }
+    
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
 }
 
 public enum Sleeves

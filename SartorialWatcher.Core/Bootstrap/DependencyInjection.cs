@@ -22,25 +22,33 @@ public static class DependencyInjection
         IHostEnvironment environment)
     {
         // services.AddLogging();
-        
+
         services.AddSerilog();
-        
-        Log.Logger = environment.IsProduction() ? SerilogFactories.CreateProductionLogger(configuration) : SerilogFactories.CreateDevelopmentLogger(configuration);
+
+        Log.Logger = environment.IsProduction()
+            ? SerilogFactories.CreateProductionLogger(configuration)
+            : SerilogFactories.CreateDevelopmentLogger(configuration);
 
         Console.WriteLine(
             $"Environment: {environment.EnvironmentName}");
 
         services.AddScoped<IScrapingConfigurations, WolczankaAndBytom>(_ => new WolczankaAndBytom(wolczankaUrls:
             [
-                // "https://wolczanka.pl/koszule-meskie?sort=PRICE_UP&attributes=132&sizes=843,930&priceTo=120",
-                // "https://wolczanka.pl/outlet-koszule-meskie?sort=PRICE_UP&sizes=843,930&priceTo=120",
-                // "https://wolczanka.pl/koszule-meskie?attributes=14236,240,132&sizes=930&priceTo=301",
-                // "https://wolczanka.pl/outlet-dla-niego?attributes=14292&sizes=843,930&sort=PRICE_UP"
+                "https://wolczanka.pl/koszule-meskie?sort=PRICE_UP&attributes=132",
+                "https://wolczanka.pl/outlet-koszule-meskie?sort=PRICE_UP",
+                "https://wolczanka.pl/koszule-meskie?attributes=14236,132&sort=PRICE_UP",
+                "https://wolczanka.pl/outlet-dla-niego?attributes=14292&sizes=843,930&sort=PRICE_UP",
+                "https://wolczanka.pl/koszule-meskie?attributes=132"
             ], bytomUrls:
             [
-                "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049&sizes=999&priceTo=270&occasion=1",
-                "https://bytom.com.pl/koszule-1818-1?sort=PRICE_UP&attributes=3608,5000,808,328,5164,5276,1424,11049&sizes=998,999"
+                "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049",
+                "https://bytom.com.pl/koszule-1818-1?sort=PRICE_UP&attributes=3608,5000,808,328,5164,5276,1424,11049"
             ]));
+
+        services.AddScoped<WolczankaScraper>();
+        services.AddScoped<BytomScraper>();
+
+        services.AddScoped<IScraperMapper, ScrapersMapper>();
 
         if (environment.IsProduction())
         {
@@ -61,33 +69,32 @@ public static class DependencyInjection
                 return new AmazonDynamoDBClient(config);
             });
 
-            services.AddScoped<IScraperMapper, ScrapersMapper>();
+
             services.AddScoped<IReportSender, TelegramReportSender>();
 
             services.AddScoped<IReportMessageFactory, TelegramMessageFactory>();
 
             services.AddScoped<IReportsHistory, DynamoReportsHistory>();
             services.AddScoped<IScrapingStorage, DynamoScrapingStorage>();
-            
+
             services.AddAWSLambdaHosting(
                 LambdaEventSource.RestApi);
         }
         else
         {
-            services.AddScoped<IScraperMapper, ScrapersMapper>();
             services.AddScoped<IReportSender, ConsoleReportSender>();
 
             services.AddScoped<IReportMessageFactory, TelegramMessageFactory>();
-            
+
             services.AddScoped<IReportsHistory, InMemoryReportsHistory>();
             services.AddScoped<IScrapingStorage, InMemoryScrapingStorage>();
         }
-        
+
         services.AddHttpClient();
 
         services.AddScoped<PerformScrapingService>();
         services.AddScoped<SendReportService>();
-        
+
         return services;
     }
 }

@@ -12,7 +12,7 @@
         "Runtime": "dotnet10",
         "CodeUri": "",
         "MemorySize": 512,
-        "Timeout": 60,
+        "Timeout": 120,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonDynamoDBFullAccess",

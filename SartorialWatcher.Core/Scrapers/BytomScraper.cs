@@ -1,18 +1,59 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using AngleSharp.Html.Parser;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using SartorialWatcher.Core.Core;
 
 namespace SartorialWatcher.Core.Scrapers;
 
-public class BytomScraper(HttpClient http) : IScraper
+public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScraper
 {
     public async Task<ScraperResult> ScrapeAsync(ScrapingContext context)
     {
-        var url = context.Url;
-        var isOutlet = url.ToString().Contains("outlet");
+        var baseUrl = context.Url;
+        var isOutlet = baseUrl.ToString().Contains("outlet");
 
-        var html = await http.GetStringAsync(url); // TODO: cancellation token, headers
+        var products = new List<ProductSnapshot>();
+        var page = 0;
+
+        using (logger.BeginScope(new Dictionary<string, object>
+               {
+                   ["BaseUrl"] = baseUrl
+               }))
+        {
+            while (true)
+            {
+                page++;
+                using (logger.BeginScope(new Dictionary<string, object>
+                           {
+                               ["Page"] = page
+                           }
+                       ))
+                {
+                    logger.LogInformation("Scraping a page");
+                    var pageProducts = await ScrapePage(baseUrl, isOutlet, page);
+                    logger.LogInformation("Scrapped {ProductsCount} products", pageProducts.Count);
+                    if (pageProducts.Count == 0)
+                    {
+                        break;
+                    }
+
+                    products.AddRange(pageProducts);
+                }
+            }
+
+            logger.LogInformation("Scraped totally {ProductsCount} products at {PagesCount} pages", products.Count,
+                page);
+
+            return new ScraperResult { Products = products, PagesCount = page };
+        }
+    }
+
+    private async Task<List<ProductSnapshot>> ScrapePage(Uri baseUrl, bool isOutlet, int page)
+    {
+        var finalUrl = QueryHelpers.AddQueryString(baseUrl.ToString(), "page", page.ToString());
+        var html = await http.GetStringAsync(finalUrl); // TODO: cancellation token, headers
         var doc = await new HtmlParser().ParseDocumentAsync(html);
 
         var timestamp = DateTime.Now;
@@ -20,13 +61,16 @@ public class BytomScraper(HttpClient http) : IScraper
         var cards = doc.QuerySelectorAll(
             ".product-page-items > .product-page-item");
 
+        if (cards.Count == 0) return [];
+
         var products = new List<ProductSnapshot>();
-        
+
         foreach (var card in cards)
         {
             var id = card.GetAttribute("data-id") ?? throw new Exception("Id is null");
             var name = card.GetAttribute("data-item-name") ?? throw new Exception("Name is null");
-            var currentPriceString = card.GetAttribute("data-price") ?? throw new Exception("Current price is null");
+            var currentPriceString =
+                card.GetAttribute("data-price") ?? throw new Exception("Current price is null");
             var currentPrice = decimal.Parse(currentPriceString);
 
             var originalPriceString =
@@ -58,7 +102,9 @@ public class BytomScraper(HttpClient http) : IScraper
             }
 
             var tags = new List<string>();
-            var materialContent = productDoc.QuerySelector("#collapse_description > div > p:nth-child(3)")?.TextContent.Trim();
+            var materialContent = productDoc.QuerySelector("#collapse_description > div > p:nth-child(3)")
+                ?.TextContent
+                .Trim();
             if (materialContent is not null)
             {
                 if (materialContent.Contains("Bawełna") || materialContent.Contains("bawełna") ||
@@ -139,7 +185,7 @@ public class BytomScraper(HttpClient http) : IScraper
             products.Add(product);
         }
 
-        return new ScraperResult { Products = products };
+        return products;
     }
 
     private static decimal? ParsePolishPrice(string? text)
