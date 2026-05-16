@@ -8,10 +8,10 @@
     "SartorialWatcherFunction": {
       "Type": "AWS::Serverless::Function",
       "Properties": {
-        "Handler": "SartorialWatcher",
+        "Handler": "SartorialWatcher.Api",
         "Runtime": "dotnet10",
-        "CodeUri": "",
-        "MemorySize": 512,
+        "CodeUri": "./SartorialWatcher.Api/",
+        "MemorySize": 2048,
         "Timeout": 120,
         "Policies": [
           "AWSLambdaBasicExecutionRole",

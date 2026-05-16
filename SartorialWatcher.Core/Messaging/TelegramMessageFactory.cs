@@ -109,11 +109,11 @@ public class TelegramMessageFactory(ILogger<TelegramMessageFactory> logger)
     {
         if (product.Brand == "Bytom")
         {
-            return product.Tags.Contains("Bawełna") && product.CurrentPrice < 200m && product.Discount >= 0.3m;
+            return product.Tags.Contains("Bawełna") && product is { CurrentPrice: < 200m, Discount: >= 0.3m } && product.Sizes.Contains("188-194/40") || product.Sizes.Contains("188-194/39");
         }
         else
         {
-            return product.Tags.Contains("Bawełna") && product.CurrentPrice < 120m && product.Discount >= 0.3m;
+            return product.Tags.Contains("Bawełna") && product is { CurrentPrice: < 120m, Discount: >= 0.3m } && product.Sizes.Contains("188-194/40") || product.Sizes.Contains("188-194/39");
         }
     }
 

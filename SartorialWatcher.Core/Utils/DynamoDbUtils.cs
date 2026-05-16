@@ -4,7 +4,7 @@ namespace SartorialWatcher.Core.Utils;
 
 public static class DynamoDbUtils
 {
-    public static string? GetString(
+    public static string? GetNullableString(
         this Dictionary<string, AttributeValue> item,
         string key)
     {

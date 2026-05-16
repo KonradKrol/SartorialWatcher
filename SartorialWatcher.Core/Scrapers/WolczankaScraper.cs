@@ -12,7 +12,7 @@ namespace SartorialWatcher.Core.Scrapers;
 public class WolczankaScraper(HttpClient http, ILogger<WolczankaScraper> logger) : IScraper
 {
     private readonly HtmlParser _parser = new();
-    private readonly SemaphoreSlim _semaphore = new(10);
+    private readonly SemaphoreSlim _semaphore = new(8);
 
     public async Task<ScraperResult> ScrapeAsync(ScrapingContext context)
     {

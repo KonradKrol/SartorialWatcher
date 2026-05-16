@@ -19,7 +19,7 @@ public class DynamoScrapingStorage(
     public async Task AddAsync(List<ProductSnapshot> productSnapshots)
     {
         logger.LogInformation("Saving {ProductsCount} products", productSnapshots.Count);
-        var transactionWriteItemsByProduct = productSnapshots.ToDictionary(
+        var transactionWriteItemsByProduct = productSnapshots.DistinctBy(product => product.Id).ToDictionary(
             product => product.Id,
             product =>
             {
@@ -142,24 +142,11 @@ public class DynamoScrapingStorage(
 
     private static Dictionary<string, AttributeValue> CreateCommonAttributes(ProductSnapshot product)
     {
-        return new Dictionary<string, AttributeValue>
+        var attributes = new Dictionary<string, AttributeValue>
         {
             ["Brand"] = new(product.Brand),
             ["Name"] = new(product.Name),
-            ["Description"] = new(product.Description),
             ["Url"] = new(product.Url),
-            ["ImageUrl"] = new(product.ImageUrl),
-
-            ["Sizes"] = new()
-            {
-                SS = product.Sizes.ToList()
-            },
-
-            ["Tags"] = new()
-            {
-                SS = product.Tags.ToList()
-            },
-
             ["CurrentPrice"] = new()
             {
                 N = product.CurrentPrice.ToString(CultureInfo.InvariantCulture)
@@ -180,6 +167,28 @@ public class DynamoScrapingStorage(
                 BOOL = product.IsOutlet
             },
         };
+
+        if (product.Description is { } description)
+        {
+            attributes["Description"] = new AttributeValue(description);
+        }
+
+        if (product.ImageUrl is { } imageUrl)
+        {
+            attributes["ImageUrl"] = new AttributeValue(imageUrl);
+        }
+
+        if (product.Sizes.Length > 0)
+        {
+            attributes["Sizes"] = new AttributeValue { SS = product.Sizes.ToList() };
+        }
+
+        if (product.Tags.Length > 0)
+        {
+            attributes["Tags"] = new AttributeValue { SS = product.Tags.ToList() };
+        }
+
+        return attributes;
     }
 
     // TODO: Tutaj potrzeba GSI
@@ -286,11 +295,11 @@ public class DynamoScrapingStorage(
             Id = id,
             Brand = dynamoItem["Brand"].S,
             Name = dynamoItem["Name"].S,
-            Description = dynamoItem.GetString("Description"),
+            Description = dynamoItem.GetNullableString("Description"),
             Url = dynamoItem["Url"].S,
-            ImageUrl = dynamoItem.GetString("ImageUrl"),
-            Sizes = dynamoItem["Sizes"].SS.ToArray(),
-            Tags = dynamoItem["Tags"].SS.ToArray(),
+            ImageUrl = dynamoItem.GetNullableString("ImageUrl"),
+            Sizes = dynamoItem.GetValueOrDefault("Sizes")?.SS.ToArray() ?? [],
+            Tags = dynamoItem.GetValueOrDefault("Tags")?.SS.ToArray() ?? [],
             CurrentPrice = decimal.Parse(dynamoItem["CurrentPrice"].N),
             OriginalPrice = decimal.Parse(dynamoItem["OriginalPrice"].N),
             Omnibus30DaysPrice = decimal.Parse(dynamoItem["Omnibus30DaysPrice"].N),
