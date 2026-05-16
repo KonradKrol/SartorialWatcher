@@ -6,6 +6,7 @@ using AngleSharp.Html.Parser;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using SartorialWatcher.Core.Core;
+using SartorialWatcher.Core.Utils;
 
 namespace SartorialWatcher.Core.Scrapers;
 
@@ -194,7 +195,8 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
         await _semaphore.WaitAsync();
 
         var id = productHtmlCard.GetAttribute("data-id") ?? throw new Exception("Id is null");
-        var name = productHtmlCard.GetAttribute("data-item-name") ?? throw new Exception("Name is null");
+        var name = productHtmlCard.GetAttribute("data-item-name")?.ToSentenceCaseInvariant() ??
+                   throw new Exception("Name is null");
         var currentPriceString =
             productHtmlCard.GetAttribute("data-price") ?? throw new Exception("Current price is null");
         var currentPrice = decimal.Parse(currentPriceString);
