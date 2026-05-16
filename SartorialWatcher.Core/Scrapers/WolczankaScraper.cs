@@ -269,6 +269,16 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
                 tags.Add("Len");
             }
 
+            if (materialContent.Contains("Poliamid") || materialContent.Contains("poliamid"))
+            {
+                tags.Add("Poliamid");
+            }
+            
+            if (materialContent.Contains("Elastan") || materialContent.Contains("elastan"))
+            {
+                tags.Add("Elastan");
+            }
+
             if (materialContent.Contains("organiczna") || materialContent.Contains("Organiczna"))
             {
                 tags.Add("Organiczna");
@@ -278,11 +288,23 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
             {
                 tags.Add("Merceryzowana");
             }
+            
+            if (materialContent.Contains("Two ply") || materialContent.Contains("two ply") ||
+                materialContent.Contains("dwuskrętnej") || materialContent.Contains("dwuskrętna") ||
+                materialContent.Contains("Dwuskrętnej") || materialContent.Contains("Dwuskrętna"))
+            {
+                tags.Add("Two ply");
+            }
 
             if (materialContent.Contains("Egipska") || materialContent.Contains("egipska") ||
                 materialContent.Contains("Egipt"))
             {
                 tags.Add("Egipska");
+            }
+            
+            if (materialContent.Contains("wełna") || materialContent.Contains("Wełna"))
+            {
+                tags.Add("Wełna");
             }
         }
 

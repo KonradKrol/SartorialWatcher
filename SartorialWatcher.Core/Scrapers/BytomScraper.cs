@@ -119,6 +119,16 @@ public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScra
                 {
                     tags.Add("Len");
                 }
+                
+                if (materialContent.Contains("Poliamid") || materialContent.Contains("poliamid"))
+                {
+                    tags.Add("Poliamid");
+                }
+            
+                if (materialContent.Contains("Elastan") || materialContent.Contains("elastan"))
+                {
+                    tags.Add("Elastan");
+                }
 
                 if (materialContent.Contains("organiczna") || materialContent.Contains("Organiczna"))
                 {
