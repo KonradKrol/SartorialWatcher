@@ -66,8 +66,8 @@ public static class DependencyInjection
                     "https://wolczanka.pl/koszule-meskie?attributes=132"
                 ], bytomUrls:
                 [
-                    "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049",
-                    "https://bytom.com.pl/koszule-1818-1?sort=PRICE_UP&attributes=3608,5000,808,328,5164,5276,1424,11049"
+                    "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049,136",
+                    "https://bytom.com.pl/koszule-1818-1?sort=PRICE_UP&attributes=3608,5000,808,328,5164,5276,1424,136"
                 ]));
 
 
@@ -87,7 +87,7 @@ public static class DependencyInjection
                 [
                 ], bytomUrls:
                 [
-                    "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049",
+                    "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049,136",
                 ]));
             
             // services.AddScoped<IReportSender, ConsoleReportSender>();
