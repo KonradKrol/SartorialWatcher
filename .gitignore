@@ -1,6 +1,9 @@
 bin/
 obj/
+.idea/
 .vs/
 node_modules/
 *.user
 *.suo
+*.DotSettings.user
+*.sln.DotSettings.user
