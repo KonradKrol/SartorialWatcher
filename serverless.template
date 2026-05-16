@@ -12,7 +12,7 @@
         "Runtime": "dotnet10",
         "CodeUri": "./SartorialWatcher.Api/",
         "MemorySize": 2048,
-        "Timeout": 120,
+        "Timeout": 240,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
           "AmazonDynamoDBFullAccess",

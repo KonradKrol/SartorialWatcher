@@ -42,7 +42,11 @@ public class SendReportService(
         }
 
         var now = DateTimeOffset.Now;
-        await reportSender.SendReport(message);
+        var sent = await reportSender.SendReport(message);
+        if (!sent)
+        {
+            return false;
+        }
         await reportsHistory.RegisterNewReportAsync(new Report { Timestamp = now });
         logger.LogInformation("Sent the report");
         return true;

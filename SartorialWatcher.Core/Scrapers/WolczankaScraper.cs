@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
@@ -9,8 +10,9 @@ using SartorialWatcher.Core.Core;
 namespace SartorialWatcher.Core.Scrapers;
 
 // TODO: Add logs
-public class WolczankaScraper(HttpClient http, ILogger<WolczankaScraper> logger) : IScraper
+public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaScraper> logger) : IScraper
 {
+    private HttpClient _http = httpFactory.CreateClient("scraper");
     private readonly HtmlParser _parser = new();
     private readonly SemaphoreSlim _semaphore = new(8);
 
@@ -33,6 +35,12 @@ public class WolczankaScraper(HttpClient http, ILogger<WolczankaScraper> logger)
                    ))
             {
                 var firstPageScraperResult = await ScrapePage(baseUrl, isOutlet, maxPage);
+                if (firstPageScraperResult is null)
+                {
+                    logger.LogWarning("First PageScrapingResult is null");
+                    throw new Exception("Failed to scrape");
+                }
+
                 firstPageProducts = firstPageScraperResult.Products;
                 maxPage = firstPageScraperResult.MaxDisplayedPage ?? 1; // TODO: Czy to dobre, by było hardcoded 5?
             }
@@ -57,6 +65,12 @@ public class WolczankaScraper(HttpClient http, ILogger<WolczankaScraper> logger)
                                 logger.LogInformation("Scraping a page");
 
                                 var pageScrapingResult = await ScrapePage(baseUrl, isOutlet, page);
+
+                                if (pageScrapingResult is null)
+                                {
+                                    logger.LogWarning("PageScrapingResult is null");
+                                    return null;
+                                }
 
                                 logger.LogInformation(
                                     "Scrapped {ProductsCount} products. Max displayed page is {MaxDisplayedPage}",
@@ -118,10 +132,14 @@ public class WolczankaScraper(HttpClient http, ILogger<WolczankaScraper> logger)
         }
     }
 
-    private async Task<PageScraperResult> ScrapePage(Uri url, bool isOutlet, int page)
+    private async Task<PageScraperResult?> ScrapePage(Uri url, bool isOutlet, int page)
     {
         var finalUrl = QueryHelpers.AddQueryString(url.ToString(), "page", page.ToString());
-        var html = await http.GetStringAsync(finalUrl); // TODO: cancellation token, headers
+        var httpResponse = await _http.GetAsync(finalUrl); // TODO: cancellation token, headers
+        httpResponse.EnsureSuccessStatusCode();
+        if (httpResponse.StatusCode == HttpStatusCode.NotFound) return null;
+        var html = await httpResponse.Content.ReadAsStringAsync();
+
         var doc = await _parser.ParseDocumentAsync(html);
 
         var pageNumbersSelector = doc.QuerySelectorAll(".products-control-container > div > nav > ul > li");
@@ -171,7 +189,7 @@ public class WolczankaScraper(HttpClient http, ILogger<WolczankaScraper> logger)
         return new PageScraperResult(Products: products, MaxDisplayedPage: maxPageNumber);
     }
 
-    private async Task<ProductSnapshot> ScrapeProduct(IElement productHtmlCard, bool isOutlet, DateTime timestamp)
+    private async Task<ProductSnapshot?> ScrapeProduct(IElement productHtmlCard, bool isOutlet, DateTime timestamp)
     {
         await _semaphore.WaitAsync();
 
@@ -195,7 +213,25 @@ public class WolczankaScraper(HttpClient http, ILogger<WolczankaScraper> logger)
 
         try
         {
-            productSiteHtml = await http.GetStringAsync(href);
+            var response = await _http.GetAsync(href);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            if ((int)response.StatusCode >= 500)
+            {
+                logger.LogWarning(
+                    "Temporary server error {StatusCode} for {Href}",
+                    response.StatusCode,
+                    href);
+
+                return null;
+            }
+
+            response.EnsureSuccessStatusCode();
+            productSiteHtml = await _http.GetStringAsync(href);
         }
         finally
         {

@@ -4,9 +4,9 @@ namespace SartorialWatcher.Core.Messaging;
 
 public class ConsoleReportSender : IReportSender
 {
-    public Task SendReport(string message)
+    public Task<bool> SendReport(string message)
     {
         Console.WriteLine($"### RAPORT ###:\n{message}");
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 }

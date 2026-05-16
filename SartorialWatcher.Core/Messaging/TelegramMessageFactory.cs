@@ -16,8 +16,8 @@ public class TelegramMessageFactory(ILogger<TelegramMessageFactory> logger)
         var oldProducts = context.Products.Where(product => !newDealIds.Contains(product.Id)).ToList();
 
         var newCottonDeals =
-            newProducts.Where(EligibleToCottonNewDeal).OrderByPrice().ToList();
-        var newLinenDeals = newProducts.Where(EligibleToLinenNewDeal).OrderByPrice().ToList();
+            newProducts.Where(EligibleToCottonNewDeal).OrderByPrice().Take(30).ToList();
+        var newLinenDeals = newProducts.Where(EligibleToLinenNewDeal).OrderByPrice().Take(40).ToList();
         var otherDeals = oldProducts.Where(EligibleToOtherDeal).OrderByPrice().Take(5)
             .ToList();
         logger.LogInformation("Got {CottonCount} cotton deals, {LinenCount} linen deals and {OtherCount} other deals",

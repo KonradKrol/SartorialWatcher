@@ -3,6 +3,7 @@ using Amazon.DynamoDBv2;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Polly;
 using SartorialWatcher.Core.Core;
 using SartorialWatcher.Core.Infrastructure.ReportsHistory;
 using SartorialWatcher.Core.Infrastructure.ScrapingConfigurations;
@@ -21,8 +22,6 @@ public static class DependencyInjection
         IConfiguration configuration,
         IHostEnvironment environment)
     {
-        // services.AddLogging();
-
         services.AddSerilog();
 
         Log.Logger = environment.IsProduction()
@@ -32,18 +31,7 @@ public static class DependencyInjection
         Console.WriteLine(
             $"Environment: {environment.EnvironmentName}");
 
-        services.AddScoped<IScrapingConfigurations, WolczankaAndBytom>(_ => new WolczankaAndBytom(wolczankaUrls:
-            [
-                "https://wolczanka.pl/koszule-meskie?sort=PRICE_UP&attributes=132",
-                "https://wolczanka.pl/outlet-koszule-meskie?sort=PRICE_UP",
-                "https://wolczanka.pl/koszule-meskie?attributes=14236,132&sort=PRICE_UP",
-                "https://wolczanka.pl/outlet-dla-niego?attributes=14292&sizes=843,930&sort=PRICE_UP",
-                "https://wolczanka.pl/koszule-meskie?attributes=132"
-            ], bytomUrls:
-            [
-                "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049",
-                "https://bytom.com.pl/koszule-1818-1?sort=PRICE_UP&attributes=3608,5000,808,328,5164,5276,1424,11049"
-            ]));
+
 
         services.AddScoped<WolczankaScraper>();
         services.AddScoped<BytomScraper>();
@@ -68,6 +56,19 @@ public static class DependencyInjection
 
                 return new AmazonDynamoDBClient(config);
             });
+            
+            services.AddScoped<IScrapingConfigurations, WolczankaAndBytom>(_ => new WolczankaAndBytom(wolczankaUrls:
+                [
+                    "https://wolczanka.pl/koszule-meskie?sort=PRICE_UP&attributes=132",
+                    "https://wolczanka.pl/outlet-koszule-meskie?sort=PRICE_UP",
+                    "https://wolczanka.pl/koszule-meskie?attributes=14236,132&sort=PRICE_UP",
+                    "https://wolczanka.pl/outlet-dla-niego?attributes=14292&sizes=843,930&sort=PRICE_UP",
+                    "https://wolczanka.pl/koszule-meskie?attributes=132"
+                ], bytomUrls:
+                [
+                    "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049",
+                    "https://bytom.com.pl/koszule-1818-1?sort=PRICE_UP&attributes=3608,5000,808,328,5164,5276,1424,11049"
+                ]));
 
 
             services.AddScoped<IReportSender, TelegramReportSender>();
@@ -82,8 +83,15 @@ public static class DependencyInjection
         }
         else
         {
-            services.AddScoped<IReportSender, ConsoleReportSender>();
-
+            services.AddScoped<IScrapingConfigurations, WolczankaAndBytom>(_ => new WolczankaAndBytom(wolczankaUrls:
+                [
+                ], bytomUrls:
+                [
+                    "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049",
+                ]));
+            
+            // services.AddScoped<IReportSender, ConsoleReportSender>();
+            services.AddScoped<IReportSender, TelegramReportSender>();
             services.AddScoped<IReportMessageFactory, TelegramMessageFactory>();
 
             services.AddScoped<IReportsHistory, InMemoryReportsHistory>();
@@ -91,6 +99,16 @@ public static class DependencyInjection
         }
 
         services.AddHttpClient();
+
+        services
+            .AddHttpClient("scraper")
+            .AddTransientHttpErrorPolicy(policy =>
+                policy.WaitAndRetryAsync(
+                [
+                    TimeSpan.FromSeconds(1),
+                    TimeSpan.FromSeconds(2),
+                    TimeSpan.FromSeconds(5)
+                ]));
 
         services.AddScoped<PerformScrapingService>();
         services.AddScoped<SendReportService>();

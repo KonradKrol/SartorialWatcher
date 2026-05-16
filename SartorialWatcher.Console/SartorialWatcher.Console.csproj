@@ -5,10 +5,11 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <UserSecretsId>4f7c3b3f-8fd9-47b4-8797-66d16d5b0a54</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SartorialWatcher.Core\SartorialWatcher.Core.csproj" />
+        <ProjectReference Include="..\SartorialWatcher.Core\SartorialWatcher.Core.csproj"/>
     </ItemGroup>
 
 </Project>
