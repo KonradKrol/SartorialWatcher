@@ -163,7 +163,7 @@
     "SendReportsScheduleRule": {
       "Type": "AWS::Events::Rule",
       "Properties": {
-        "ScheduleExpression": "cron(5 9,13,17 * * ? *)",
+        "ScheduleExpression": "cron(10 9,13,17 * * ? *)",
         "State": "ENABLED",
         "Targets": [
           {
