@@ -152,8 +152,13 @@ public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScra
                 {
                     tags.Add("Two ply");
                 }
+                
+                if (Regex.IsMatch(materialContent, @"\beasy care\b", RegexOptions.IgnoreCase))
+                {
+                    tags.Add("Easy care");
+                }
 
-                if (materialContent.Contains("wełna") || materialContent.Contains("Wełna"))
+                if (Regex.IsMatch(materialContent, @"\bwełna\b", RegexOptions.IgnoreCase))
                 {
                     tags.Add("Wełna");
                 }

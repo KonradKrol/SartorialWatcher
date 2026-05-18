@@ -2,7 +2,8 @@ using SartorialWatcher.Core.Domain;
 
 namespace SartorialWatcher.Core.Infrastructure.ScrapingConfigurations;
 
-public class WolczankaAndBytom(string[] wolczankaUrls, string[] bytomUrls) : IScrapingConfigurations
+public class ProductionConfigurations(string[] wolczankaUrls, string[] bytomUrls, string[] vistulaUrls)
+    : IScrapingConfigurations
 {
     public List<ScrapingConfiguration> Configurations
     {
@@ -19,7 +20,12 @@ public class WolczankaAndBytom(string[] wolczankaUrls, string[] bytomUrls) : ISc
                     Url = url,
                     IsEnabled = true
                 }
-            )).ToList();
+            )).Concat(vistulaUrls.Select(url => new ScrapingConfiguration()
+            {
+                ScraperName = "Vistula",
+                Url = url,
+                IsEnabled = true,
+            })).ToList();
         }
     }
 }

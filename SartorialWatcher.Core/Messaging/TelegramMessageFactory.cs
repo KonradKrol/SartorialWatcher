@@ -107,26 +107,64 @@ public class TelegramMessageFactory(ILogger<TelegramMessageFactory> logger)
 
     private static bool EligibleToCottonNewDeal(ProductSnapshot product)
     {
-        if (product.Brand == "Bytom")
+        return product.Brand switch
         {
-            return product.Tags.Contains("Bawełna") && product is { CurrentPrice: < 200m, Discount: >= 0.3m } && product.Sizes.Contains("188-194/40") || product.Sizes.Contains("188-194/39");
-        }
-        else
-        {
-            return product.Tags.Contains("Bawełna") && product is { CurrentPrice: < 120m, Discount: >= 0.3m } && product.Sizes.Contains("188-194/40") || product.Sizes.Contains("188-194/39");
-        }
+            "Bytom" =>
+                product.Tags.Contains("Bawełna") &&
+                product is { CurrentPrice: < 200m, Discount: >= 0.25m } &&
+                (
+                    product.Sizes.Contains("188-194/40") ||
+                    product.Sizes.Contains("188-194/39")
+                ),
+
+            "Vistula" =>
+                product.Tags.Contains("Bawełna") &&
+                product is { CurrentPrice: < 150m, Discount: >= 0.25m } &&
+                (
+                    product.Sizes.Contains("188-194/40") ||
+                    product.Sizes.Contains("188-194/39")
+                ),
+
+            "Wólczanka" =>
+                product.Tags.Contains("Bawełna") &&
+                product is { CurrentPrice: < 150m, Discount: >= 0.25m } &&
+                (
+                    product.Sizes.Contains("188-194/40") ||
+                    product.Sizes.Contains("188-194/39")
+                ),
+            _ => true,
+        };
     }
 
     private static bool EligibleToLinenNewDeal(ProductSnapshot product)
     {
-        if (product.Brand == "Bytom")
+        return product.Brand switch
         {
-            return product.Tags.Contains("Len") && product.Discount >= 0.15m;
-        }
-        else
-        {
-            return product.Tags.Contains("Len") && product.Discount >= 0.3m;
-        }
+            "Bytom" =>
+                product.Tags.Contains("Len") &&
+                product is { Discount: >= 0.1m } &&
+                (
+                    product.Sizes.Contains("188-194/40") ||
+                    product.Sizes.Contains("188-194/39")
+                ),
+
+            "Vistula" =>
+                product.Tags.Contains("Len") &&
+                product is { Discount: >= 0.1m } &&
+                (
+                    product.Sizes.Contains("188-194/40") ||
+                    product.Sizes.Contains("188-194/39")
+                ),
+
+            "Wólczanka" =>
+                product.Tags.Contains("Len") &&
+                product is { Discount: >= 0.1m } &&
+                (
+                    product.Sizes.Contains("188-194/40") ||
+                    product.Sizes.Contains("188-194/39")
+                ),
+            _ => true,
+        };
     }
 
     private static bool EligibleToOtherDeal(ProductSnapshot product)

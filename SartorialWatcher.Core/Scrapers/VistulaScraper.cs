@@ -10,7 +10,7 @@ using SartorialWatcher.Core.Utils;
 
 namespace SartorialWatcher.Core.Scrapers;
 
-public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaScraper> logger) : IScraper
+public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScraper> logger) : IScraper
 {
     private HttpClient _http = httpFactory.CreateClient("scraper");
     private readonly HtmlParser _parser = new();
@@ -19,7 +19,7 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
     public async Task<ScraperResult> ScrapeAsync(ScrapingContext context)
     {
         var baseUrl = context.Url;
-        var isOutlet = baseUrl.ToString().Contains("outlet");
+        var isOutlet = baseUrl.ToString().Contains("promocja") || baseUrl.ToString().Contains("outlet");
 
         using (logger.BeginScope(new Dictionary<string, object>
                {
@@ -98,6 +98,10 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
                     var effectivePagesCount = effectiveResults.Count;
                     var scrapedProducts =
                         effectiveResults.SelectMany(scraperResult => scraperResult.Products).ToList();
+                    
+                    logger.LogInformation("Partial scraping: scraped {ProductsCount} products at {PagesCount} pages",
+                        scrapedProducts.Count,
+                        effectivePagesCount);
 
                     if (startingPage == 2)
                     {
@@ -105,10 +109,6 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
                     }
 
                     products.AddRange(scrapedProducts);
-
-                    logger.LogInformation("Partial scraping: scraped {ProductsCount} products at {PagesCount} pages",
-                        scrapedProducts.Count,
-                        effectivePagesCount);
 
                     if (maxFoundPage is null || maxFoundPage == maxPage)
                     {
@@ -202,12 +202,13 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
         var currentPrice = decimal.Parse(currentPriceString);
 
         var originalPriceString =
-            productHtmlCard.QuerySelector(".product-price-omnibus > div:nth-child(2)")?.TextContent?.Trim();
+            productHtmlCard.QuerySelector(".is_product-price-omnibus > div:nth-child(2)")?.TextContent?.Trim();
         var omnibus30DaysPriceString = productHtmlCard.QuerySelector(
-            ".product-price-omnibus > div:nth-child(1)")?.TextContent.Trim();
+            ".is_product-price-omnibus > div:nth-child(1)")?.TextContent.Trim();
 
         var originalPrice = ParsePolishPrice(originalPriceString);
         var omnibus30DaysPrice = ParsePolishPrice(omnibus30DaysPriceString);
+
 
         var href = productHtmlCard.QuerySelector("a")?.GetAttribute("href") ?? throw new Exception("Href is null");
 
@@ -243,18 +244,24 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
         var productDoc = await _parser.ParseDocumentAsync(productSiteHtml);
 
         var sizesSelector = productDoc.QuerySelectorAll(
-            "#newSelectedSize .select-size-new__list__item");
-        var sizes = new List<string>();
+            "#product-variant-form > select > option");
+        var sizes = new List<string>(); // TODO
         foreach (var sizeElement in sizesSelector)
         {
-            var size = sizeElement.GetAttribute("data-name");
-            if (size is null)
+            var size = sizeElement.TextContent.Trim();
+            if (size.Contains("Rozmiar")) continue;
+            if (sizeElement.GetAttribute("data-quantity") == "0")
+            {
                 continue;
+            }
+
             sizes.Add(size);
         }
 
         var tags = new List<string>();
-        var materialContent = productDoc.QuerySelector("#collapse_material > div > span")?.TextContent.Trim();
+        var materialContent =
+            productDoc.QuerySelector(".product-description-content > div:nth-child(2) > div.product-description-text")
+                ?.TextContent.Trim();
         if (materialContent is not null)
         {
             if (materialContent.Contains("Bawełna") || materialContent.Contains("bawełna") ||
@@ -301,7 +308,7 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
             {
                 tags.Add("Egipska");
             }
-
+            
             if (Regex.IsMatch(materialContent, @"\beasy care\b", RegexOptions.IgnoreCase))
             {
                 tags.Add("Easy care");
@@ -326,15 +333,17 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
             imageUrl = htmlPicture?.GetAttribute("srcset");
         }
 
-        var description = productDoc.QuerySelector("#collapse_description > div > p:nth-child(1)")?.TextContent?
+        var description = productDoc
+            .QuerySelector(".product-description-content > div:nth-child(1) > div.product-description-text")
+            ?.TextContent
             .Trim();
 
         var product = new ProductSnapshot
         {
-            Id = $"WOL-{id}",
+            Id = $"VIS-{id}",
             Name = name,
             Description = description,
-            Brand = "Wólczanka",
+            Brand = "Vistula",
             Url = href,
             CurrentPrice = currentPrice,
             OriginalPrice = originalPrice ?? currentPrice,
@@ -364,4 +373,4 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
     }
 }
 
-internal record WolczankaPageScraperResult(List<ProductSnapshot> Products, int? MaxDisplayedPage);
+internal record VistulaPageScraperResult(List<ProductSnapshot> Products, int? MaxDisplayedPage);

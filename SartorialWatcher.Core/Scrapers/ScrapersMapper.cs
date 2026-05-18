@@ -11,6 +11,7 @@ public class ScrapersMapper(HttpClient http, IServiceProvider serviceProvider) :
         {
             "Wólczanka" => serviceProvider.GetRequiredService<WolczankaScraper>(),
             "Bytom" => serviceProvider.GetRequiredService<BytomScraper>(),
+            "Vistula" => serviceProvider.GetRequiredService<VistulaScraper>(),
             "Mocked" => new MockedScraper(),
             _ => throw new NotImplementedException($"Scraper {name} is not implemented yet.")
         };

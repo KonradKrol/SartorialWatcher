@@ -32,7 +32,7 @@ public static class DependencyInjection
             $"Environment: {environment.EnvironmentName}");
 
 
-
+        services.AddScoped<VistulaScraper>();
         services.AddScoped<WolczankaScraper>();
         services.AddScoped<BytomScraper>();
 
@@ -56,19 +56,25 @@ public static class DependencyInjection
 
                 return new AmazonDynamoDBClient(config);
             });
-            
-            services.AddScoped<IScrapingConfigurations, WolczankaAndBytom>(_ => new WolczankaAndBytom(wolczankaUrls:
-                [
-                    "https://wolczanka.pl/koszule-meskie?sort=PRICE_UP&attributes=132",
-                    "https://wolczanka.pl/outlet-koszule-meskie?sort=PRICE_UP",
-                    "https://wolczanka.pl/koszule-meskie?attributes=14236,132&sort=PRICE_UP",
-                    "https://wolczanka.pl/outlet-dla-niego?attributes=14292&sizes=843,930&sort=PRICE_UP",
-                    "https://wolczanka.pl/koszule-meskie?attributes=132"
-                ], bytomUrls:
-                [
-                    "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049,136",
-                    "https://bytom.com.pl/koszule-1818-1?sort=PRICE_UP&attributes=3608,5000,808,328,5164,5276,1424,136"
-                ]));
+
+            services.AddScoped<IScrapingConfigurations, ProductionConfigurations>(_ =>
+                new ProductionConfigurations(wolczankaUrls:
+                    [
+                        "https://wolczanka.pl/koszule-meskie?sort=PRICE_UP&attributes=132",
+                        "https://wolczanka.pl/outlet-koszule-meskie?sort=PRICE_UP",
+                        "https://wolczanka.pl/koszule-meskie?attributes=14236,132&sort=PRICE_UP",
+                        "https://wolczanka.pl/outlet-dla-niego?attributes=14292&sizes=843,930&sort=PRICE_UP",
+                        "https://wolczanka.pl/koszule-meskie?attributes=132"
+                    ], bytomUrls:
+                    [
+                        "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049,136",
+                        "https://bytom.com.pl/koszule-1818-1?sort=PRICE_UP&attributes=3608,5000,808,328,5164,5276,1424,136"
+                    ],
+                    vistulaUrls:
+                    [
+                        "https://vistula.pl/koszule?sort=PRICE_UP&attributes=16876",
+                        "https://vistula.pl/promocja?attributes=16876"
+                    ]));
 
 
             services.AddScoped<IReportSender, TelegramReportSender>();
@@ -83,15 +89,20 @@ public static class DependencyInjection
         }
         else
         {
-            services.AddScoped<IScrapingConfigurations, WolczankaAndBytom>(_ => new WolczankaAndBytom(wolczankaUrls:
-                [
-                ], bytomUrls:
-                [
-                    "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049,136",
-                ]));
-            
-            // services.AddScoped<IReportSender, ConsoleReportSender>();
-            services.AddScoped<IReportSender, TelegramReportSender>();
+            services.AddScoped<IScrapingConfigurations, ProductionConfigurations>(_ =>
+                new ProductionConfigurations(wolczankaUrls:
+                    [
+                    ], bytomUrls:
+                    [
+                        // "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049,136",
+                    ], vistulaUrls:
+                    [
+                        "https://vistula.pl/koszule?sort=PRICE_UP&attributes=16876",
+                        "https://vistula.pl/promocja?attributes=16876"
+                    ]));
+
+            services.AddScoped<IReportSender, ConsoleReportSender>();
+            // services.AddScoped<IReportSender, TelegramReportSender>();
             services.AddScoped<IReportMessageFactory, TelegramMessageFactory>();
 
             services.AddScoped<IReportsHistory, InMemoryReportsHistory>();
