@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using SartorialWatcher.Core.Core;
+using SartorialWatcher.Core.Domain;
 using SartorialWatcher.Core.Exceptions;
 
 namespace SartorialWatcher.Core.Messaging;

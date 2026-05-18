@@ -5,7 +5,7 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using SartorialWatcher.Core.Core;
+using SartorialWatcher.Core.Domain;
 using SartorialWatcher.Core.Utils;
 
 namespace SartorialWatcher.Core.Scrapers;

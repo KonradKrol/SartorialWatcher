@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
-using SartorialWatcher.Core.Core;
+using SartorialWatcher.Core.Domain;
 using SartorialWatcher.Core.Infrastructure.ReportsHistory;
 using SartorialWatcher.Core.Infrastructure.ScrapingConfigurations;
 using SartorialWatcher.Core.Infrastructure.Storage;

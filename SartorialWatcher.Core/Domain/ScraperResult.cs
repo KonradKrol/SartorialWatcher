@@ -1,4 +1,4 @@
-namespace SartorialWatcher.Core.Core;
+namespace SartorialWatcher.Core.Domain;
 
 public class ScraperResult
 {

@@ -1,4 +1,4 @@
-namespace SartorialWatcher.Core.Core;
+namespace SartorialWatcher.Core.Domain;
 
 public record ReportMessageContext(List<ProductSnapshot> Products, List<ProductSnapshot> ProductsAddedSinceLastReport);
 

@@ -2,7 +2,7 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using SartorialWatcher.Core.Core;
+using SartorialWatcher.Core.Domain;
 
 namespace SartorialWatcher.Core.Infrastructure.ReportsHistory;
 

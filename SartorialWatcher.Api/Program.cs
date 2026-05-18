@@ -1,9 +1,7 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using SartorialWatcher.Core.Bootstrap;
 using SartorialWatcher.Core.Web;
 using Serilog;

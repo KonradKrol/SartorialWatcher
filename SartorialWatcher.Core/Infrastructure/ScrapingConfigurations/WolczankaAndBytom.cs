@@ -1,4 +1,4 @@
-using SartorialWatcher.Core.Core;
+using SartorialWatcher.Core.Domain;
 
 namespace SartorialWatcher.Core.Infrastructure.ScrapingConfigurations;
 

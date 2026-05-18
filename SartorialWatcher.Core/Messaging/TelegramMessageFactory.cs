@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using SartorialWatcher.Core.Core;
+using SartorialWatcher.Core.Domain;
 using SartorialWatcher.Core.Utils;
 
 namespace SartorialWatcher.Core.Messaging;
