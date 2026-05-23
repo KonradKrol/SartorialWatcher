@@ -11,20 +11,17 @@ public class ProductionConfigurations(string[] wolczankaUrls, string[] bytomUrls
         {
             return wolczankaUrls.Select(url => new ScrapingConfiguration()
             {
-                ScraperName = "Wólczanka",
+                ShopName = "Wólczanka",
                 Url = url,
-                IsEnabled = true
             }).Concat(bytomUrls.Select(url => new ScrapingConfiguration()
                 {
-                    ScraperName = "Bytom",
+                    ShopName = "Bytom",
                     Url = url,
-                    IsEnabled = true
                 }
             )).Concat(vistulaUrls.Select(url => new ScrapingConfiguration()
             {
-                ScraperName = "Vistula",
+                ShopName = "Vistula",
                 Url = url,
-                IsEnabled = true,
             })).ToList();
         }
     }

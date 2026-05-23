@@ -163,21 +163,18 @@ public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScra
                     tags.Add("Wełna");
                 }
             }
-            //
-            // string? imageUrl = null;
-            //
-            // var imagesSelector =
-            //     productDoc.QuerySelectorAll(
-            //         ".row.desktop-part-gallery > div:nth-child(1) > a > picture > img");
-            //
-            //
-            // var firstImage = imagesSelector.FirstOrDefault();
-            // if (firstImage is not null)
-            // {
-            //     var htmlPicture = firstImage.QuerySelector(".desktop-gallery source");
-            //     imageUrl = htmlPicture?.GetAttribute("srcset");
-            // }
+            
+            var imagesSelector =
+                productDoc.QuerySelectorAll(
+                    ".row.desktop-part-gallery > div");
 
+            var imageUrls = imagesSelector.Select(htmlDivWithImage =>
+            {
+                var imageSelector = htmlDivWithImage.QuerySelector("a > picture > img");
+                var imageUrl = imageSelector?.GetAttribute("src");
+                return imageUrl;
+            }).Where(url => url is not null).Cast<string>();
+            
             var description = productDoc.QuerySelector("#collapse_description > div > p:nth-child(1)")?.TextContent?
                 .Trim();
 
@@ -191,7 +188,7 @@ public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScra
                 CurrentPrice = currentPrice,
                 OriginalPrice = originalPrice ?? currentPrice,
                 Omnibus30DaysPrice = omnibus30DaysPrice ?? currentPrice,
-                // ImageUrl = imageUrl,
+                ImageUrls = imageUrls.ToArray(),
                 Sizes = sizes.ToArray(),
                 Tags = tags.ToArray(),
                 Timestamp = timestamp,

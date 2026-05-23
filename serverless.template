@@ -5,16 +5,52 @@
   "Parameters": {},
   "Conditions": {},
   "Resources": {
-    "SartorialWatcherFunction": {
+          "ScrapeJobsQueue": {
+             "Type": "AWS::SQS::Queue",
+             "Properties": {
+                 "VisibilityTimeout": 900
+               }
+          },
+    "ScrapingOrchestratorFunction": {
       "Type": "AWS::Serverless::Function",
       "Properties": {
-        "Handler": "SartorialWatcher.Api",
+        "Handler": "SartorialWatcher.Lambda::SartorialWatcher.Lambda.ScrapingOrchestratorFunction::FunctionHandler",
         "Runtime": "dotnet10",
-        "CodeUri": "./SartorialWatcher.Api/",
-        "MemorySize": 2048,
-        "Timeout": 300,
+        "CodeUri": "./SartorialWatcher.Lambda/",
+        "MemorySize": 256,
+        "Timeout": 10,
         "Policies": [
           "AWSLambdaBasicExecutionRole",
+          "AmazonSQSFullAccess",
+          "SecretsManagerReadWrite"
+        ],
+      "Environment":
+          {
+          "Variables": {
+          "SECRET_NAME": "sartorial-watcher/prod"
+          }
+        },
+      "Events": {
+        "Schedule": {
+          "Type": "Schedule",
+          "Properties": {
+            "Schedule": "cron(0 5,14 * * ? *)"
+          }
+        }
+      }
+      }
+    },
+    "ScrapeShopFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "SartorialWatcher.Lambda::SartorialWatcher.Lambda.ScrapeShopFunction::FunctionHandler",
+        "Runtime": "dotnet10",
+        "CodeUri": "./SartorialWatcher.Lambda/",
+        "MemorySize": 1024,
+        "Timeout": 150,
+        "Policies": [
+          "AWSLambdaBasicExecutionRole",
+          "AmazonSQSFullAccess",
           "AmazonDynamoDBFullAccess",
           "SecretsManagerReadWrite"
         ],
@@ -24,173 +60,47 @@
           "SECRET_NAME": "sartorial-watcher/prod"
           }
           },
-        "Events": {
-          "ScrapeEndpoint": {
-            "Type": "Api",
-            "Properties": {
-              "Path": "/scrape",
-              "Method": "POST"
-            }
-          },
-            "HealthEndpoint": {
-              "Type": "Api",
+          "Events": {
+            "QueueTrigger": {
+              "Type": "SQS",
               "Properties": {
-                "Path": "/health",
-                "Method": "GET"
+                "Queue": {
+                  "Fn::GetAtt": ["ScrapeJobsQueue", "Arn"]
+                },
+                "BatchSize": 1
               }
-            },
-          "SendReportsEndpoint": {
-            "Type": "Api",
-            "Properties": {
-              "Path": "/send_reports",
-              "Method": "POST"
-            }
-          }
-        }
-      }
-    },
-        "EventBridgeInvokeApiDestinationRole": {
-          "Type": "AWS::IAM::Role",
-          "Properties": {
-            "AssumeRolePolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": {
-                    "Service": "events.amazonaws.com"
-                  },
-                  "Action": "sts:AssumeRole"
-                }
-              ]
-            },
-            "Policies": [
-              {
-                "PolicyName": "InvokeApiDestination",
-                "PolicyDocument": {
-                  "Version": "2012-10-17",
-                  "Statement": [
-                    {
-                      "Effect": "Allow",
-                      "Action": "events:InvokeApiDestination",
-                     "Resource": [
-                       {
-                         "Fn::GetAtt": [
-                           "ScrapeApiDestination",
-                           "Arn"
-                         ]
-                       },
-                       {
-                         "Fn::GetAtt": [
-                           "SendReportsApiDestination",
-                           "Arn"
-                         ]
-                       }
-                     ]
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-         },
-    "SchedulerApiConnection": {
-      "Type": "AWS::Events::Connection",
-      "Properties": {
-        "AuthorizationType": "API_KEY",
-        "AuthParameters": {
-          "ApiKeyAuthParameters": {
-            "ApiKeyName": "X-Api-Key",
-            "ApiKeyValue": "{{resolve:secretsmanager:sartorial-watcher/prod:SecretString:SchedulerApiKey}}"
-          }
-        }
-      }
-    },
-    "ScrapeApiDestination": {
-      "Type": "AWS::Events::ApiDestination",
-      "Properties": {
-        "ConnectionArn": {
-          "Fn::GetAtt": [
-            "SchedulerApiConnection",
-            "Arn"
-          ]
-        },
-        "InvocationEndpoint": {
-          "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/scrape"
-        },
-        "HttpMethod": "POST"
-      }
-    },
-    "ScrapeScheduleRule": {
-      "Type": "AWS::Events::Rule",
-      "Properties": {
-        "ScheduleExpression": "cron(0 5,9,13,17,19 * * ? *)",
-        "State": "ENABLED",
-        "Targets": [
-          {
-            "Id": "ScrapeTarget",
-            "Arn": {
-              "Fn::GetAtt": [
-                "ScrapeApiDestination",
-                "Arn"
-              ]
-            },
-            "RoleArn": {
-              "Fn::GetAtt": [
-                "EventBridgeInvokeApiDestinationRole",
-                "Arn"
-              ]
-            }
-          }
-        ]
-      }
-    },
-    "SendReportsApiDestination": {
-      "Type": "AWS::Events::ApiDestination",
-      "Properties": {
-        "ConnectionArn": {
-          "Fn::GetAtt": [
-            "SchedulerApiConnection",
-            "Arn"
-          ]
-        },
-        "InvocationEndpoint": {
-          "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/send_reports"
-        },
-        "HttpMethod": "POST"
-      }
-    },
-    "SendReportsScheduleRule": {
-      "Type": "AWS::Events::Rule",
-      "Properties": {
-        "ScheduleExpression": "cron(10 9,13,17 * * ? *)",
-        "State": "ENABLED",
-        "Targets": [
-          {
-            "Id": "SendReportsTarget",
-            "Arn": {
-              "Fn::GetAtt": [
-                "SendReportsApiDestination",
-                "Arn"
-              ]
-            },
-            "RoleArn": {
-              "Fn::GetAtt": [
-                "EventBridgeInvokeApiDestinationRole",
-                "Arn"
-              ]
-            }
-          }
-        ]
+             }
       }
     }
    },
-  "Outputs": {
-    "ApiURL": {
-      "Description": "API endpoint URL for Prod environment",
-      "Value": {
-        "Fn::Sub": "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-      }
-    }
-  }
+       "SendReportsFunction": {
+         "Type": "AWS::Serverless::Function",
+         "Properties": {
+           "Handler": "SartorialWatcher.Lambda::SartorialWatcher.Lambda.SendReportsFunction::FunctionHandler",
+           "Runtime": "dotnet10",
+           "CodeUri": "./SartorialWatcher.Lambda/",
+           "MemorySize": 512,
+           "Timeout": 15,
+           "Policies": [
+             "AWSLambdaBasicExecutionRole",
+             "AmazonDynamoDBFullAccess",
+             "SecretsManagerReadWrite"
+           ],
+             "Environment":
+             {
+             "Variables": {
+             "SECRET_NAME": "sartorial-watcher/prod"
+             }
+             },
+                            "Events": {
+                              "Schedule": {
+                                "Type": "Schedule",
+                                "Properties": {
+                                  "Schedule": "cron(10 5,14 * * ? *)"
+                                }
+                              }
+                            }
+         }
+       }
+   }
 }

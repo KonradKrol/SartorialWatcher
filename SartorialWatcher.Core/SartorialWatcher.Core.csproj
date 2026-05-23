@@ -11,10 +11,12 @@
     <ItemGroup>
         <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="10.0.0"/>
         <PackageReference Include="Amazon.Lambda.AspNetCoreServer.Hosting" Version="2.0.0"/>
+        <PackageReference Include="Amazon.Lambda.SQSEvents" Version="3.0.0" />
         <PackageReference Include="AngleSharp" Version="1.4.0"/>
         <PackageReference Include="AWS.Logger.SeriLog" Version="4.0.2"/>
         <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.18.1"/>
         <PackageReference Include="AWSSDK.SecretsManager" Version="4.0.4.20"/>
+        <PackageReference Include="AWSSDK.SQS" Version="4.0.2.31" />
         <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.7"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.7"/>
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7"/>

@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SartorialWatcher.Core", "Sa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SartorialWatcher.Console", "SartorialWatcher.Console\SartorialWatcher.Console.csproj", "{0D27934A-6CD4-4466-BCB6-728B8DED53C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SartorialWatcher.Api", "SartorialWatcher.Api\SartorialWatcher.Api.csproj", "{F0949374-33F4-4964-B03B-852B24AA9417}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SartorialWatcher.Lambda", "SartorialWatcher.Lambda\SartorialWatcher.Lambda.csproj", "{F0949374-33F4-4964-B03B-852B24AA9417}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

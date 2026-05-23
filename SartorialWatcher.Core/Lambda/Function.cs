@@ -29,7 +29,7 @@ public sealed class Function
             {
                 var performScraping =
                     scope.ServiceProvider
-                        .GetRequiredService<PerformScrapingService>();
+                        .GetRequiredService<ScrapeAllShopsService>();
 
                 await performScraping.Invoke();
 
@@ -58,7 +58,7 @@ public sealed class Function
     {
         services.AddLogging();
 
-        services.AddScoped<PerformScrapingService>();
+        services.AddScoped<ScrapeAllShopsService>();
         services.AddScoped<SendReportService>();
 
         // etc

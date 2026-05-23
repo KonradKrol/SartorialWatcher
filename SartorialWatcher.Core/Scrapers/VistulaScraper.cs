@@ -98,7 +98,7 @@ public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScrap
                     var effectivePagesCount = effectiveResults.Count;
                     var scrapedProducts =
                         effectiveResults.SelectMany(scraperResult => scraperResult.Products).ToList();
-                    
+
                     logger.LogInformation("Partial scraping: scraped {ProductsCount} products at {PagesCount} pages",
                         scrapedProducts.Count,
                         effectivePagesCount);
@@ -308,7 +308,7 @@ public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScrap
             {
                 tags.Add("Egipska");
             }
-            
+
             if (Regex.IsMatch(materialContent, @"\beasy care\b", RegexOptions.IgnoreCase))
             {
                 tags.Add("Easy care");
@@ -320,18 +320,19 @@ public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScrap
             }
         }
 
-        string? imageUrl = null;
 
         var imagesSelector =
             productDoc.QuerySelectorAll(
-                ".desktop-gallery > div");
+                ".product_page__gallery > div");
 
-        var firstImage = imagesSelector.FirstOrDefault();
-        if (firstImage is not null)
+        var imageUrls = imagesSelector.Select(htmlDivWithImage =>
         {
-            var htmlPicture = firstImage.QuerySelector(".desktop-gallery source");
-            imageUrl = htmlPicture?.GetAttribute("srcset");
-        }
+            if (htmlDivWithImage.ClassName != null && htmlDivWithImage.ClassName.Contains("swiper")) return null;
+            
+            var imageSelector = htmlDivWithImage.QuerySelector("div > picture > img");
+            var imageUrl = imageSelector?.GetAttribute("src");
+            return imageUrl;
+        }).Where(url => url is not null).Cast<string>();
 
         var description = productDoc
             .QuerySelector(".product-description-content > div:nth-child(1) > div.product-description-text")
@@ -348,7 +349,7 @@ public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScrap
             CurrentPrice = currentPrice,
             OriginalPrice = originalPrice ?? currentPrice,
             Omnibus30DaysPrice = omnibus30DaysPrice ?? currentPrice,
-            ImageUrl = imageUrl,
+            ImageUrls = imageUrls.ToArray(),
             Sizes = sizes.ToArray(),
             Tags = tags.ToArray(),
             Timestamp = timestamp,

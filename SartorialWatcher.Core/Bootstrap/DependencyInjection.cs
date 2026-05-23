@@ -1,5 +1,7 @@
 using Amazon;
 using Amazon.DynamoDBv2;
+using Amazon.Runtime.SharedInterfaces;
+using Amazon.SQS;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -57,6 +59,8 @@ public static class DependencyInjection
                 return new AmazonDynamoDBClient(config);
             });
 
+            services.AddSingleton<IAmazonSQS>(_ => new AmazonSQSClient());
+
             services.AddScoped<IScrapingConfigurations, ProductionConfigurations>(_ =>
                 new ProductionConfigurations(wolczankaUrls:
                     [
@@ -83,18 +87,15 @@ public static class DependencyInjection
 
             services.AddScoped<IReportsHistory, DynamoReportsHistory>();
             services.AddScoped<IScrapingStorage, DynamoScrapingStorage>();
-
-            services.AddAWSLambdaHosting(
-                LambdaEventSource.RestApi);
         }
         else
         {
             services.AddScoped<IScrapingConfigurations, ProductionConfigurations>(_ =>
                 new ProductionConfigurations(wolczankaUrls:
+                    ["https://wolczanka.pl/koszule-meskie?attributes=132"]
+                    , bytomUrls:
                     [
-                    ], bytomUrls:
-                    [
-                        // "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049,136",
+                        "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049,136",
                     ], vistulaUrls:
                     [
                         "https://vistula.pl/koszule?sort=PRICE_UP&attributes=16876",
@@ -121,8 +122,9 @@ public static class DependencyInjection
                     TimeSpan.FromSeconds(5)
                 ]));
 
-        services.AddScoped<PerformScrapingService>();
+        services.AddScoped<ScrapeAllShopsService>();
         services.AddScoped<SendReportService>();
+        services.AddScoped<ScrapeShopService>();
 
         return services;
     }

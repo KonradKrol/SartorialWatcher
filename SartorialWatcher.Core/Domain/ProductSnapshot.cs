@@ -2,12 +2,12 @@ namespace SartorialWatcher.Core.Domain;
 
 public class ProductSnapshot : IEquatable<ProductSnapshot>
 {
-    public required string Id { get; set; }
+    public required string Id { get; init; }
     public required string Brand { get; set; }
     public required string Name { get; set; }
     public string? Description { get; set; }
     public required string Url { get; set; }
-    public string? ImageUrl { get; set; }
+    public string[] ImageUrls { get; set; } = [];
     public string[] Sizes { get; init; } = [];
     public string[] Tags { get; init; } = [];
     public required decimal CurrentPrice { get; set; }
@@ -17,6 +17,7 @@ public class ProductSnapshot : IEquatable<ProductSnapshot>
     public Sleeves? Sleeves { get; set; }
     public required bool IsOutlet { get; set; }
 
+    public bool HasImage => ImageUrls.Length > 0;
     public decimal Discount => 1 - decimal.Round(CurrentPrice / OriginalPrice * 100) / 100;
     public decimal Omnibus30DaysDiscount => 1 - decimal.Round(CurrentPrice / Omnibus30DaysPrice * 100) / 100;
 
@@ -34,7 +35,7 @@ public class ProductSnapshot : IEquatable<ProductSnapshot>
 
         return false;
     }
-    
+
     public override int GetHashCode()
     {
         return Id.GetHashCode();

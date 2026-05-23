@@ -1,49 +1,50 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using SartorialWatcher.Core.Domain;
+using SartorialWatcher.Core.Exceptions;
 using SartorialWatcher.Core.Services;
-
 
 namespace SartorialWatcher.Core.Web;
 
 public static class Endpoints
 {
-    public static void MapEndpoints(this WebApplication app)
+    private record ScrapeDto(string ShopName, [Url] string Url);
+
+    public static void MapSartorialWatcherEndpoints(this WebApplication app)
     {
         app.MapGet("/health", () => Results.Ok());
 
-        app.MapPost("/scrape", async (HttpRequest request,
-            IConfiguration configuration, PerformScrapingService performScrapingService, ILoggerFactory loggerFactory) =>
+        app.MapPost("/scrape", async ([FromBody] ScrapeDto scrapeDto, HttpRequest request,
+            IConfiguration configuration, ScrapeShopService scrapeShopService,
+            ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger("Http.Scrape.Post");
 
-            logger.LogInformation("Requested to perform scraping");
-
-            // logger.LogInformation("Path: {Path}", request.Path);
-            // logger.LogInformation("Method: {Method}", request.Method);
-            // logger.LogInformation(
-            //     "Source IP: {SourceIp}",
-            //     request.HttpContext.Connection.RemoteIpAddress);
-
-            var headers = request.Headers.ToDictionary(
-                x => x.Key,
-                x => x.Value.ToString());
-
-            // logger.LogInformation(
-            //     "Headers: {Headers}",
-            //     JsonSerializer.Serialize(headers));
-
-            var token = request.Headers["X-Api-Key"];
-
-            if (token != configuration["SchedulerApiKey"])
+            using (logger.BeginScope(new Dictionary<string, object> { ["ShopName"] = scrapeDto.ShopName, ["Url"] = scrapeDto.Url }))
             {
-                return Results.Unauthorized();
-            }
+                logger.LogInformation("Requested to perform scraping");
 
-            var products = (await performScrapingService.Invoke()).ToList();
-            logger.LogInformation("Scraped {ProductsCount}", products.Count);
-            return Results.Ok(new { ScrapedProductsCount = products.Count });
+                var token = request.Headers["X-Api-Key"];
+
+                if (token != configuration["SchedulerApiKey"])
+                {
+                    return Results.Unauthorized();
+                }
+
+                var scrapingConfiguration = new ScrapingConfiguration
+                {
+                    ShopName = scrapeDto.ShopName,
+                    Url = scrapeDto.Url,
+                };
+
+                var products = (await scrapeShopService.Invoke(scrapingConfiguration)).ToList();
+                logger.LogInformation("Scraped {ProductsCount}", products.Count);
+                return Results.Ok(new { ScrapedProductsCount = products.Count });
+            }
         });
 
         app.MapPost("/send_reports", async (HttpRequest request,

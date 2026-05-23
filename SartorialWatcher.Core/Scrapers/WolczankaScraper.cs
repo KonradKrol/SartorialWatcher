@@ -312,20 +312,17 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
                 tags.Add("Wełna");
             }
         }
-
-        string? imageUrl = null;
-
         var imagesSelector =
             productDoc.QuerySelectorAll(
-                ".desktop-gallery > div");
+                ".desktop-gallery > div > div");
 
-        var firstImage = imagesSelector.FirstOrDefault();
-        if (firstImage is not null)
+        var imageUrls = imagesSelector.Select(htmlDivWithImage =>
         {
-            var htmlPicture = firstImage.QuerySelector(".desktop-gallery source");
-            imageUrl = htmlPicture?.GetAttribute("srcset");
-        }
-
+            var imageSelector = htmlDivWithImage.QuerySelector("a > picture > img");
+            var imageUrl = imageSelector?.GetAttribute("src");
+            return imageUrl;
+        }).Where(url => url is not null).Cast<string>();
+        
         var description = productDoc.QuerySelector("#collapse_description > div > p:nth-child(1)")?.TextContent?
             .Trim();
 
@@ -339,7 +336,7 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
             CurrentPrice = currentPrice,
             OriginalPrice = originalPrice ?? currentPrice,
             Omnibus30DaysPrice = omnibus30DaysPrice ?? currentPrice,
-            ImageUrl = imageUrl,
+            ImageUrls = imageUrls.ToArray(),
             Sizes = sizes.ToArray(),
             Tags = tags.ToArray(),
             Timestamp = timestamp,

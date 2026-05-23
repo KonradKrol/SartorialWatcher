@@ -11,4 +11,14 @@
       <ProjectReference Include="..\SartorialWatcher.Core\SartorialWatcher.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Update="appsettings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Amazon.Lambda.SQSEvents" Version="3.0.0" />
+    </ItemGroup>
+
 </Project>

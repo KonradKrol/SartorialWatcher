@@ -3,11 +3,11 @@ using SartorialWatcher.Core.Domain;
 
 namespace SartorialWatcher.Core.Services;
 
-public class PerformScrapingService(
+public class ScrapeAllShopsService(
     IScrapingStorage storage,
     IScrapingConfigurations scrapingConfigurations,
     IScraperMapper scraperMapper,
-    ILogger<PerformScrapingService> logger)
+    ILogger<ScrapeAllShopsService> logger)
 {
     public async Task<IEnumerable<ProductSnapshot>> Invoke()
     {
@@ -22,11 +22,11 @@ public class PerformScrapingService(
         {
             using (logger.BeginScope(new Dictionary<string, object>
                    {
-                       ["ScraperName"] = configuration.ScraperName,
+                       ["ShopName"] = configuration.ShopName,
                        ["Url"] = configuration.Url
                    }))
             {
-                var scraper = scraperMapper.GetScraper(configuration.ScraperName);
+                var scraper = scraperMapper.GetScraper(configuration.ShopName);
                 logger.LogDebug("Got {ScraperType} implementation",
                     nameof(scraper));
                 var scrapingResult =
@@ -40,7 +40,7 @@ public class PerformScrapingService(
 
         products = products.ToHashSet().ToList();
 
-        logger.LogInformation("Scraped {ProductsCount} new products", products.Count);
+        logger.LogInformation("Scraped {ProductsCount} products", products.Count);
 
         return products;
     }

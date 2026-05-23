@@ -17,7 +17,7 @@ public class MockedScraper : IScraper
                     Name = "Koszula Lniana",
                     Brand = "Wólczanka",
                     Description = "Stworzone z wysokiej jakości tkaniny.",
-                    ImageUrl = null,
+                    ImageUrls = [],
                     CurrentPrice = 12.99m,
                     Sizes =
                     [

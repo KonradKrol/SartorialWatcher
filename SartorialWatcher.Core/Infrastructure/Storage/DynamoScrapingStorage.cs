@@ -108,12 +108,14 @@ public class DynamoScrapingStorage(
             }
         }
 
-        var averageConsumedRcu = (double)consumedRcu / transactionWriteItemsByProduct.Count / 2;
-        var averageConsumedWcu = (double)consumedWcu / transactionWriteItemsByProduct.Count / 2;
+        var savedProductsCount = productSnapshots.Count - failedTransactions;
+
+        var averageConsumedRcu = (double)consumedRcu / savedProductsCount / 2;
+        var averageConsumedWcu = (double)consumedWcu / savedProductsCount / 2;
 
         logger.LogInformation(
             "Transact-written {ProductsCount} consuming {ConsumedRcu} RCUs and {ConsumedWcu} WCUs. In average, consumed {AverageRcu} RCUs and {AverageWcu} WCUs per transaction. {FailedTransactionsCount} transactions failed",
-            productSnapshots.Count - failedTransactions, consumedRcu, consumedWcu, averageConsumedRcu.RoundTo(2),
+            savedProductsCount, consumedRcu, consumedWcu, averageConsumedRcu.RoundTo(2),
             averageConsumedWcu.RoundTo(2), failedTransactions);
     }
 
@@ -173,9 +175,9 @@ public class DynamoScrapingStorage(
             attributes["Description"] = new AttributeValue(description);
         }
 
-        if (product.ImageUrl is { } imageUrl)
+        if (product.HasImage)
         {
-            attributes["ImageUrl"] = new AttributeValue(imageUrl);
+            attributes["ImageUrls"] = new AttributeValue { SS = product.ImageUrls.ToList() };
         }
 
         if (product.Sizes.Length > 0)
@@ -297,7 +299,7 @@ public class DynamoScrapingStorage(
             Name = dynamoItem["Name"].S,
             Description = dynamoItem.GetNullableString("Description"),
             Url = dynamoItem["Url"].S,
-            ImageUrl = dynamoItem.GetNullableString("ImageUrl"),
+            ImageUrls = dynamoItem.GetValueOrDefault("ImageUrls")?.SS.ToArray() ?? [],
             Sizes = dynamoItem.GetValueOrDefault("Sizes")?.SS.ToArray() ?? [],
             Tags = dynamoItem.GetValueOrDefault("Tags")?.SS.ToArray() ?? [],
             CurrentPrice = decimal.Parse(dynamoItem["CurrentPrice"].N),

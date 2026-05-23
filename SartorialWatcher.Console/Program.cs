@@ -2,13 +2,14 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SartorialWatcher.Console;
 using SartorialWatcher.Core;
 using SartorialWatcher.Core.Bootstrap;
 
 var builder = Host.CreateApplicationBuilder(args);
 
 await builder.Configuration
-    .AddAppConfiguration(builder.Environment);
+    .AddAppConfigurationAsync(builder.Environment);
 
 builder.Configuration.AddUserSecrets<Program>();
 
