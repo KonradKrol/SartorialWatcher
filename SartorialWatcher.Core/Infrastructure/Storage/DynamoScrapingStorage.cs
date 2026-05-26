@@ -236,19 +236,33 @@ public class DynamoScrapingStorage(
 
     public async Task<IReadOnlyCollection<ProductSnapshot>> GetCurrentProductsAsync()
     {
-        var queryRequest = new QueryRequest()
+        HashSet<ProductSnapshot> products = [];
+        var lastEvaluatedKey = new Dictionary<string, AttributeValue>();
+        do
         {
-            TableName = TableName,
-            KeyConditionExpression = "PK = :pk",
-            ExpressionAttributeValues = new()
+            var queryRequest = new QueryRequest
             {
-                [":pk"] = new AttributeValue($"CURRENT")
+                TableName = TableName,
+                KeyConditionExpression = "PK = :pk",
+                ExpressionAttributeValues = new()
+                {
+                    [":pk"] = new AttributeValue($"CURRENT")
+                },
+                ExclusiveStartKey = lastEvaluatedKey.Count > 0 ? lastEvaluatedKey : null
+            };
+
+            var response = await dynamoDb.QueryAsync(queryRequest);
+
+            lastEvaluatedKey = response.LastEvaluatedKey ?? new Dictionary<string, AttributeValue>();
+            var responseItems = response.Items;
+
+            foreach (var productSnapshot in responseItems.Select(CreateSnapshotFromDynamoItem))
+            {
+                products.Add(productSnapshot);
             }
-        };
-        var response = await dynamoDb.QueryAsync(queryRequest);
-        var responseItems = response.Items;
-        var productSnapshots = responseItems.Select(CreateSnapshotFromDynamoItem).ToList();
-        return productSnapshots;
+        } while (lastEvaluatedKey.Count > 0);
+
+        return products;
     }
 
     public async Task<ProductSnapshot?> FindCheapestSnapshotAsync(string productId)

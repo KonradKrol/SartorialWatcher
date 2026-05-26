@@ -86,7 +86,13 @@ public static class DependencyInjection
             services.AddScoped<IReportMessageFactory, TelegramMessageFactory>();
 
             services.AddScoped<IReportsHistory, DynamoReportsHistory>();
-            services.AddScoped<IScrapingStorage, DynamoScrapingStorage>();
+
+            services.AddScoped<DynamoScrapingStorage>();
+            services.AddScoped<InMemoryCacheSettings>(_ =>
+                new InMemoryCacheSettings(TimeSpan.FromHours(2), TimeSpan.FromHours(2)));
+            services.AddScoped<IScrapingStorage, InMemoryCacheScrapingStorage>(sp =>
+                new InMemoryCacheScrapingStorage(sp.GetRequiredService<DynamoScrapingStorage>(),
+                    sp.GetRequiredService<InMemoryCacheSettings>()));
         }
         else
         {

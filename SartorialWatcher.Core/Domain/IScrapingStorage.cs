@@ -12,6 +12,8 @@ public interface IScrapingStorage
     Task<IReadOnlyCollection<ProductSnapshot>> GetCurrentSnapshotsSinceAsync(DateTimeOffset since);
     
     Task<ProductSnapshot?> GetLatestSnapshotAsync(string productId);
+    
     Task<IReadOnlyCollection<ProductSnapshot>> GetCurrentProductsAsync();
+    
     Task<ProductSnapshot?> FindCheapestSnapshotAsync(string productId);
 }

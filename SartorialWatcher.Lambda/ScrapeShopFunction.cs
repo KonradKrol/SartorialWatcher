@@ -41,7 +41,6 @@ public class ScrapeShopFunction
 
         services.AddSartorialWatcher(configuration, environment);
         
-
         services.AddSingleton<IConfiguration>(configuration);
 
         ServiceProvider = services.BuildServiceProvider();
