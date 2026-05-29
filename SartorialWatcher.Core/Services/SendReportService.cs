@@ -10,7 +10,7 @@ public class SendReportService(
     IReportsHistory reportsHistory,
     ILogger<SendReportService> logger)
 {
-    private const string ProductSize = "188-194/40";
+    private readonly string[] _productSizes = ["188-194/39", "188-194/40", "M", "L"];
 
     public async Task<bool> Invoke()
     {
@@ -18,7 +18,10 @@ public class SendReportService(
         var lastReportBeenAt = await reportsHistory.GetLatestReportDateAsync() ?? DateTimeOffset.MinValue;
         logger.LogDebug("Retrieved last report date which is {LastReportDate}", lastReportBeenAt);
         var currentProducts = (await scrapingStorage.GetCurrentProductsAsync())
-            .Where(product => product.Sizes.Contains(ProductSize)).ToList();
+            .Where(product => product.Sizes.ContainsAny(_productSizes)).ToList();
+        logger.LogDebug("Retrieved {CurrentProductsCount} current products", currentProducts.Count);
+        logger.LogDebug("Max found timestamp is {MaxTimestamp} and the min is {MinTimestamp}",
+            currentProducts.MaxBy(x => x.Timestamp)?.Timestamp, currentProducts.MinBy(x => x.Timestamp)?.Timestamp);
         var newProducts = currentProducts.Where(product => product.Timestamp >= lastReportBeenAt).ToList();
 
         if (newProducts.Count == 0)
@@ -26,7 +29,7 @@ public class SendReportService(
             logger.LogInformation("No new products — skipping sending the report");
             return false;
         }
-        
+
         var messageContext = new ReportMessageContext(currentProducts.ToList(),
             newProducts.ToList());
 
@@ -47,6 +50,7 @@ public class SendReportService(
         {
             return false;
         }
+
         await reportsHistory.RegisterNewReportAsync(new Report { Timestamp = now });
         logger.LogInformation("Sent the report");
         return true;
