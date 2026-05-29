@@ -16,9 +16,9 @@ public class TelegramMessageFactory(ILogger<TelegramMessageFactory> logger)
         var oldProducts = context.Products.Where(product => !newDealIds.Contains(product.Id)).ToList();
 
         var newCottonDeals =
-            newProducts.Where(EligibleToCottonNewDeal).OrderByPrice().Take(30).ToList();
-        var newLinenDeals = newProducts.Where(EligibleToLinenNewDeal).OrderByPrice().Take(40).ToList();
-        var otherDeals = oldProducts.Where(EligibleToOtherDeal).OrderByPrice().Take(5)
+            newProducts.Where(EligibleToCottonNewDeal).OrderByPrice().Take(50).ToList();
+        var newLinenDeals = newProducts.Where(EligibleToLinenNewDeal).OrderByPrice().Take(50).ToList();
+        var otherDeals = oldProducts.Where(EligibleToOtherDeal).OrderByPrice().Take(15)
             .ToList();
         logger.LogInformation("Got {CottonCount} cotton deals, {LinenCount} linen deals and {OtherCount} other deals",
             newCottonDeals.Count, newLinenDeals.Count, otherDeals.Count);
@@ -111,27 +111,15 @@ public class TelegramMessageFactory(ILogger<TelegramMessageFactory> logger)
         {
             "Bytom" =>
                 product.Tags.Contains("Bawełna") &&
-                product is { CurrentPrice: < 200m, Discount: >= 0.25m } &&
-                (
-                    product.Sizes.Contains("188-194/40") ||
-                    product.Sizes.Contains("188-194/39")
-                ),
+                product is { CurrentPrice: < 200m, Discount: >= 0.25m },
 
             "Vistula" =>
                 product.Tags.Contains("Bawełna") &&
-                product is { CurrentPrice: < 150m, Discount: >= 0.25m } &&
-                (
-                    product.Sizes.Contains("188-194/40") ||
-                    product.Sizes.Contains("188-194/39")
-                ),
+                product is { CurrentPrice: < 150m, Discount: >= 0.25m },
 
             "Wólczanka" =>
                 product.Tags.Contains("Bawełna") &&
-                product is { CurrentPrice: < 150m, Discount: >= 0.25m } &&
-                (
-                    product.Sizes.Contains("188-194/40") ||
-                    product.Sizes.Contains("188-194/39")
-                ),
+                product is { CurrentPrice: < 150m, Discount: >= 0.25m },
             _ => true,
         };
     }
@@ -142,27 +130,15 @@ public class TelegramMessageFactory(ILogger<TelegramMessageFactory> logger)
         {
             "Bytom" =>
                 product.Tags.Contains("Len") &&
-                product is { Discount: >= 0.1m } &&
-                (
-                    product.Sizes.Contains("188-194/40") ||
-                    product.Sizes.Contains("188-194/39")
-                ),
+                product is { Discount: >= 0.1m },
 
             "Vistula" =>
                 product.Tags.Contains("Len") &&
-                product is { Discount: >= 0.1m } &&
-                (
-                    product.Sizes.Contains("188-194/40") ||
-                    product.Sizes.Contains("188-194/39")
-                ),
+                product is { Discount: >= 0.1m },
 
             "Wólczanka" =>
                 product.Tags.Contains("Len") &&
-                product is { Discount: >= 0.1m } &&
-                (
-                    product.Sizes.Contains("188-194/40") ||
-                    product.Sizes.Contains("188-194/39")
-                ),
+                product is { Discount: >= 0.1m },
             _ => true,
         };
     }

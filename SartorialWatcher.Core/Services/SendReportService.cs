@@ -10,7 +10,7 @@ public class SendReportService(
     IReportsHistory reportsHistory,
     ILogger<SendReportService> logger)
 {
-    private readonly string[] _productSizes = ["188-194/39", "188-194/40", "M", "L"];
+    private readonly string[] _productSizes = ["188-194/39", "188-194/40"];
 
     public async Task<bool> Invoke()
     {

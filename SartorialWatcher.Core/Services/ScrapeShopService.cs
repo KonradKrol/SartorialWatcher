@@ -24,21 +24,35 @@ public class ScrapeShopService(
             logger.LogDebug("Got {ScraperType} implementation",
                 nameof(scraper));
             var currentProducts = (await storage.GetCurrentProductsAsync()).ToList();
+            var currentPriceById = currentProducts.ToDictionary(product => product.Id, product => product.CurrentPrice);
+
             logger.LogDebug("Retrieved {CurrentProductsCount} current products", currentProducts.Count);
             var scrapingResult =
                 await scraper.ScrapeAsync(new ScrapingContext { Url = new Uri(configuration.Url) });
             logger.LogInformation("Scrapped {ProductsCount} products", scrapingResult.Products.Count);
-            var productsToAdd = scrapingResult.Products.Except(currentProducts).ToList();
+            var productsToAdd = scrapingResult.Products.Where(ProductIsEligibleToAdd).ToList();
             var skippedProductsCount = scrapingResult.Products.Count - productsToAdd.Count;
-            logger.LogInformation("Saving {ProductsCount} new in storage. Skipping {SkippedProductsCount} products",
+            logger.LogInformation(
+                "Saving {ProductsCount} new products into the storage. Skipping {SkippedProductsCount} products",
                 productsToAdd.Count, skippedProductsCount);
-            if (products.Count > 0)
+            if (productsToAdd.Count > 0)
             {
                 await storage.AddAsync(productsToAdd);
                 products.AddRange(scrapingResult.Products);
             }
 
             return products;
+
+            bool ProductIsEligibleToAdd(ProductSnapshot product)
+            {
+                var currentPriceExists = currentPriceById.TryGetValue(product.Id, out var currentPrice);
+                if (currentPriceExists)
+                {
+                    return currentPrice != product.CurrentPrice;
+                }
+
+                return false;
+            }
         }
     }
 }
