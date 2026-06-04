@@ -69,7 +69,8 @@ public static class DependencyInjection
                         "https://wolczanka.pl/koszule-meskie?attributes=14236,132&sort=PRICE_UP",
                         "https://wolczanka.pl/outlet-dla-niego?attributes=14292&sizes=843,930&sort=PRICE_UP",
                         "https://wolczanka.pl/outlet-dla-niego?attributes=132&sort=PRICE_UP",
-                        "https://wolczanka.pl/koszule-meskie?attributes=132"
+                        "https://wolczanka.pl/koszule-meskie?attributes=132",
+                        "https://wolczanka.pl/outlet-dla-niego?sizes=926,6376,843,930&sort=PRICE_UP"
                     ], bytomUrls:
                     [
                         "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049,136",
@@ -99,7 +100,16 @@ public static class DependencyInjection
         {
             services.AddScoped<IScrapingConfigurations, ProductionConfigurations>(_ =>
                 new ProductionConfigurations(wolczankaUrls:
-                    ["https://wolczanka.pl/koszule-meskie?attributes=132"]
+                    [
+                        // "https://wolczanka.pl/koszule-meskie?sort=PRICE_UP&attributes=132",
+                        // "https://wolczanka.pl/outlet-koszule-meskie?sort=PRICE_UP",
+                        // "https://wolczanka.pl/koszule-meskie?attributes=14236,132&sort=PRICE_UP",
+                        // "https://wolczanka.pl/outlet-dla-niego?attributes=14292&sizes=843,930&sort=PRICE_UP",
+                        // "https://wolczanka.pl/outlet-dla-niego?attributes=132&sort=PRICE_UP",
+                        // "https://wolczanka.pl/koszule-meskie?attributes=132"
+                        // "https://wolczanka.pl/koszule-meskie?attributes=132"
+                        "https://wolczanka.pl/outlet-dla-niego?sizes=926,6376,843,930&sort=PRICE_UP"
+                    ]
                     , bytomUrls:
                     [
                         "https://bytom.com.pl/c-koszule?sort=PRICE_UP&attributes=44,40424,3608,5000,808,328,5164,5276,1424,11049,136",

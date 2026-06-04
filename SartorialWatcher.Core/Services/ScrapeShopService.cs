@@ -38,7 +38,7 @@ public class ScrapeShopService(
             if (productsToAdd.Count > 0)
             {
                 await storage.AddAsync(productsToAdd);
-                products.AddRange(scrapingResult.Products);
+                products.AddRange(productsToAdd);
             }
 
             return products;
@@ -46,12 +46,8 @@ public class ScrapeShopService(
             bool ProductIsEligibleToAdd(ProductSnapshot product)
             {
                 var currentPriceExists = currentPriceById.TryGetValue(product.Id, out var currentPrice);
-                if (currentPriceExists)
-                {
-                    return currentPrice != product.CurrentPrice;
-                }
-
-                return true;
+                if (!currentPriceExists) return true;
+                return currentPrice != product.CurrentPrice;
             }
         }
     }

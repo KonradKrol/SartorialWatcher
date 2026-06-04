@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Net;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
@@ -195,6 +196,7 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
         await _semaphore.WaitAsync();
 
         var id = productHtmlCard.GetAttribute("data-id") ?? throw new Exception("Id is null");
+
         var name = productHtmlCard.GetAttribute("data-item-name")?.ToSentenceCaseInvariant() ??
                    throw new Exception("Name is null");
         var currentPriceString =
@@ -322,10 +324,10 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
             var imageUrl = imageSelector?.GetAttribute("src");
             return imageUrl;
         }).Where(url => url is not null).Cast<string>();
-        
+
         var description = productDoc.QuerySelector("#collapse_description > div > p:nth-child(1)")?.TextContent?
             .Trim();
-
+        
         var product = new ProductSnapshot
         {
             Id = $"WOL-{id}",
