@@ -51,7 +51,7 @@ public class ScrapeShopService(
                     return currentPrice != product.CurrentPrice;
                 }
 
-                return false;
+                return true;
             }
         }
     }

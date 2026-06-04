@@ -68,6 +68,7 @@ public static class DependencyInjection
                         "https://wolczanka.pl/outlet-koszule-meskie?sort=PRICE_UP",
                         "https://wolczanka.pl/koszule-meskie?attributes=14236,132&sort=PRICE_UP",
                         "https://wolczanka.pl/outlet-dla-niego?attributes=14292&sizes=843,930&sort=PRICE_UP",
+                        "https://wolczanka.pl/outlet-dla-niego?attributes=132&sort=PRICE_UP",
                         "https://wolczanka.pl/koszule-meskie?attributes=132"
                     ], bytomUrls:
                     [
