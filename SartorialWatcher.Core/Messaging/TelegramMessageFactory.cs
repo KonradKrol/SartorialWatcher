@@ -55,6 +55,11 @@ public class TelegramMessageFactory(ILogger<TelegramMessageFactory> logger)
                         """;
         }
 
+        if (newCottonDeals.Count == 0 && newLinenDeals.Count == 0)
+        {
+            return "";
+        }
+
         if (otherDeals.Count > 0)
         {
             message += $"""
