@@ -2,5 +2,5 @@ namespace SartorialWatcher.Core.Domain;
 
 public interface IScraper
 {
-    Task<ScraperResult> ScrapeAsync(ScrapingContext context);
+    Task<ScraperResult> ScrapeAsync(ScrapingContext context, CancellationToken cancellationToken);
 }

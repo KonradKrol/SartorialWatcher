@@ -9,7 +9,7 @@ public class ScrapeAllShopsService(
     IScraperMapper scraperMapper,
     ILogger<ScrapeAllShopsService> logger)
 {
-    public async Task<IEnumerable<ProductSnapshot>> Invoke()
+    public async Task<IEnumerable<ProductSnapshot>> Invoke(CancellationToken cancellationToken)
     {
         logger.LogInformation("Requested to perform scraping");
         var configurations = scrapingConfigurations.Configurations;
@@ -30,7 +30,7 @@ public class ScrapeAllShopsService(
                 logger.LogDebug("Got {ScraperType} implementation",
                     nameof(scraper));
                 var scrapingResult =
-                    await scraper.ScrapeAsync(new ScrapingContext { Url = new Uri(configuration.Url) });
+                    await scraper.ScrapeAsync(new ScrapingContext { Url = new Uri(configuration.Url)}, cancellationToken);
                 logger.LogInformation("Scrapped {ProductsCount} products", scrapingResult.Products.Count);
                 await storage.AddAsync(scrapingResult.Products);
                 logger.LogInformation("Saved products");

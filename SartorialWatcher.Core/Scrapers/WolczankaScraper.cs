@@ -13,11 +13,11 @@ namespace SartorialWatcher.Core.Scrapers;
 
 public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaScraper> logger) : IScraper
 {
-    private HttpClient _http = httpFactory.CreateClient("scraper");
+    private readonly HttpClient _http = httpFactory.CreateClient("scraper");
     private readonly HtmlParser _parser = new();
     private readonly SemaphoreSlim _semaphore = new(8);
 
-    public async Task<ScraperResult> ScrapeAsync(ScrapingContext context)
+    public async Task<ScraperResult> ScrapeAsync(ScrapingContext context, CancellationToken cancellationToken)
     {
         var baseUrl = context.Url;
         var isOutlet = baseUrl.ToString().Contains("outlet");
@@ -35,7 +35,7 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
                        }
                    ))
             {
-                var firstPageScraperResult = await ScrapePage(baseUrl, isOutlet, maxPage);
+                var firstPageScraperResult = await ScrapePage(baseUrl, isOutlet, maxPage, cancellationToken);
                 if (firstPageScraperResult is null)
                 {
                     logger.LogWarning("First PageScrapingResult is null");
@@ -65,7 +65,7 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
                             {
                                 logger.LogInformation("Scraping a page");
 
-                                var pageScrapingResult = await ScrapePage(baseUrl, isOutlet, page);
+                                var pageScrapingResult = await ScrapePage(baseUrl, isOutlet, page, cancellationToken);
 
                                 if (pageScrapingResult is null)
                                 {
@@ -134,13 +134,13 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
         }
     }
 
-    private async Task<VistulaPageScraperResult?> ScrapePage(Uri url, bool isOutlet, int page)
+    private async Task<VistulaPageScraperResult?> ScrapePage(Uri url, bool isOutlet, int page,
+        CancellationToken cancellationToken)
     {
         var finalUrl = QueryHelpers.AddQueryString(url.ToString(), "page", page.ToString());
-        var httpResponse = await _http.GetAsync(finalUrl); // TODO: cancellation token, headers
-        httpResponse.EnsureSuccessStatusCode();
-        if (httpResponse.StatusCode == HttpStatusCode.NotFound) return null;
-        var html = await httpResponse.Content.ReadAsStringAsync();
+        var httpResponse = await _http.GetAsync(finalUrl, cancellationToken); // TODO: cancellation token, headers
+        if (!httpResponse.IsSuccessStatusCode) return null;
+        var html = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
 
         var doc = await _parser.ParseDocumentAsync(html);
 
@@ -169,7 +169,11 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
         {
             try
             {
-                return await ScrapeProduct(card, isOutlet, timestamp);
+                return await ScrapeProduct(card, isOutlet, timestamp, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception
                    ex)
@@ -191,9 +195,10 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
         return new VistulaPageScraperResult(Products: products, MaxDisplayedPage: maxPageNumber);
     }
 
-    private async Task<ProductSnapshot?> ScrapeProduct(IElement productHtmlCard, bool isOutlet, DateTime timestamp)
+    private async Task<ProductSnapshot?> ScrapeProduct(IElement productHtmlCard, bool isOutlet, DateTime timestamp,
+        CancellationToken cancellationToken)
     {
-        await _semaphore.WaitAsync();
+        await _semaphore.WaitAsync(cancellationToken);
 
         var id = productHtmlCard.GetAttribute("data-id") ?? throw new Exception("Id is null");
 
@@ -217,7 +222,7 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
 
         try
         {
-            var response = await _http.GetAsync(href);
+            var response = await _http.GetAsync(href, cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
@@ -235,7 +240,7 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
             }
 
             response.EnsureSuccessStatusCode();
-            productSiteHtml = await _http.GetStringAsync(href);
+            productSiteHtml = await response.Content.ReadAsStringAsync(cancellationToken);
         }
         finally
         {
@@ -314,6 +319,7 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
                 tags.Add("Wełna");
             }
         }
+
         var imagesSelector =
             productDoc.QuerySelectorAll(
                 ".desktop-gallery > div > div");
@@ -327,7 +333,7 @@ public class WolczankaScraper(IHttpClientFactory httpFactory, ILogger<WolczankaS
 
         var description = productDoc.QuerySelector("#collapse_description > div > p:nth-child(1)")?.TextContent?
             .Trim();
-        
+
         var product = new ProductSnapshot
         {
             Id = $"WOL-{id}",

@@ -19,7 +19,7 @@ public sealed class Function
 
     public async Task FunctionHandler(
         SchedulerRequest request,
-        ILambdaContext context)
+        ILambdaContext context, CancellationToken cancellationToken)
     {
         using var scope = _services.CreateScope();
 
@@ -31,7 +31,7 @@ public sealed class Function
                     scope.ServiceProvider
                         .GetRequiredService<ScrapeAllShopsService>();
 
-                await performScraping.Invoke();
+                await performScraping.Invoke(cancellationToken);
 
                 break;
             }

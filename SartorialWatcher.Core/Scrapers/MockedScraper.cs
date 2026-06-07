@@ -4,7 +4,7 @@ namespace SartorialWatcher.Core.Scrapers;
 
 public class MockedScraper : IScraper
 {
-    public async Task<ScraperResult> ScrapeAsync(ScrapingContext context)
+    public async Task<ScraperResult> ScrapeAsync(ScrapingContext context, CancellationToken cancellationToken)
     {
         return new ScraperResult
         {

@@ -9,7 +9,7 @@ public class ScrapeShopService(
     IScraperMapper scraperMapper,
     ILogger<ScrapeAllShopsService> logger)
 {
-    public async Task<IEnumerable<ProductSnapshot>> Invoke(ScrapingConfiguration configuration)
+    public async Task<IEnumerable<ProductSnapshot>> Invoke(ScrapingConfiguration configuration, CancellationToken cancellationToken)
     {
         var products = new List<ProductSnapshot>();
 
@@ -28,7 +28,7 @@ public class ScrapeShopService(
 
             logger.LogDebug("Retrieved {CurrentProductsCount} current products", currentProducts.Count);
             var scrapingResult =
-                await scraper.ScrapeAsync(new ScrapingContext { Url = new Uri(configuration.Url) });
+                await scraper.ScrapeAsync(new ScrapingContext { Url = new Uri(configuration.Url) }, cancellationToken);
             logger.LogInformation("Scrapped {ProductsCount} products", scrapingResult.Products.Count);
             var productsToAdd = scrapingResult.Products.Where(ProductIsEligibleToAdd).ToList();
             var skippedProductsCount = scrapingResult.Products.Count - productsToAdd.Count;

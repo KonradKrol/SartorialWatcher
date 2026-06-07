@@ -46,7 +46,7 @@ public class ScrapeShopFunction
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    public async Task FunctionHandler(SQSEvent evnt, ILambdaContext context)
+    public async Task FunctionHandler(SQSEvent evnt, ILambdaContext context, CancellationToken cancellationToken)
     {
         foreach (var message in evnt.Records)
         {
@@ -69,7 +69,7 @@ public class ScrapeShopFunction
                     Url = job.Url,
                 };
 
-                var products = (await _scrapeShopService.Invoke(scrapingConfiguration)).ToList();
+                var products = (await _scrapeShopService.Invoke(scrapingConfiguration, cancellationToken)).ToList();
                 _logger.LogInformation("Scraped {ProductsCount} and tried to save", products.Count);
             }
         }

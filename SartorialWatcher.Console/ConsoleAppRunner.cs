@@ -5,11 +5,11 @@ namespace SartorialWatcher.Console;
 
 public class ConsoleAppRunner(ScrapeAllShopsService scrapeAllShopsService, SendReportService sendReportService)
 {
-    public async Task RunAsync()
+    public async Task RunAsync(CancellationToken cancellationToken)
     {
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        var newProducts = await scrapeAllShopsService.Invoke();
+        var newProducts = await scrapeAllShopsService.Invoke(cancellationToken);
         stopwatch.Stop();
         var elapsed = stopwatch.Elapsed.TotalSeconds;
         System.Console.WriteLine($"Wywołanie scrapera zajęło {elapsed}s");

@@ -1,11 +1,10 @@
 using Amazon;
 using Amazon.DynamoDBv2;
-using Amazon.Runtime.SharedInterfaces;
 using Amazon.SQS;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Polly;
+using Microsoft.Extensions.Http.Resilience;
 using SartorialWatcher.Core.Domain;
 using SartorialWatcher.Core.Infrastructure.ReportsHistory;
 using SartorialWatcher.Core.Infrastructure.ScrapingConfigurations;
@@ -131,13 +130,21 @@ public static class DependencyInjection
 
         services
             .AddHttpClient("scraper")
-            .AddTransientHttpErrorPolicy(policy =>
-                policy.WaitAndRetryAsync(
-                [
-                    TimeSpan.FromSeconds(1),
-                    TimeSpan.FromSeconds(2),
-                    TimeSpan.FromSeconds(5)
-                ]));
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler()
+            {
+                MaxConnectionsPerServer = 50,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+            })
+            .SetHandlerLifetime(TimeSpan.FromMinutes(5))
+            .AddStandardResilienceHandler(options =>
+            {
+                options.CircuitBreaker.FailureRatio = 0.5;
+
+                options.Retry.MaxRetryAttempts = 5;
+                
+                options.Retry.DisableForUnsafeHttpMethods();
+            });
+
 
         services.AddScoped<ScrapeAllShopsService>();
         services.AddScoped<SendReportService>();

@@ -12,11 +12,11 @@ namespace SartorialWatcher.Core.Scrapers;
 
 public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScraper> logger) : IScraper
 {
-    private HttpClient _http = httpFactory.CreateClient("scraper");
+    private readonly HttpClient _http = httpFactory.CreateClient("scraper");
     private readonly HtmlParser _parser = new();
     private readonly SemaphoreSlim _semaphore = new(8);
 
-    public async Task<ScraperResult> ScrapeAsync(ScrapingContext context)
+    public async Task<ScraperResult> ScrapeAsync(ScrapingContext context, CancellationToken cancellationToken)
     {
         var baseUrl = context.Url;
         var isOutlet = baseUrl.ToString().Contains("promocja") || baseUrl.ToString().Contains("outlet");
@@ -34,7 +34,7 @@ public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScrap
                        }
                    ))
             {
-                var firstPageScraperResult = await ScrapePage(baseUrl, isOutlet, maxPage);
+                var firstPageScraperResult = await ScrapePage(baseUrl, isOutlet, maxPage, cancellationToken);
                 if (firstPageScraperResult is null)
                 {
                     logger.LogWarning("First PageScrapingResult is null");
@@ -64,7 +64,7 @@ public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScrap
                             {
                                 logger.LogInformation("Scraping a page");
 
-                                var pageScrapingResult = await ScrapePage(baseUrl, isOutlet, page);
+                                var pageScrapingResult = await ScrapePage(baseUrl, isOutlet, page, cancellationToken);
 
                                 if (pageScrapingResult is null)
                                 {
@@ -133,13 +133,14 @@ public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScrap
         }
     }
 
-    private async Task<VistulaPageScraperResult?> ScrapePage(Uri url, bool isOutlet, int page)
+    private async Task<VistulaPageScraperResult?> ScrapePage(Uri url, bool isOutlet, int page,
+        CancellationToken cancellationToken)
     {
         var finalUrl = QueryHelpers.AddQueryString(url.ToString(), "page", page.ToString());
-        var httpResponse = await _http.GetAsync(finalUrl); // TODO: cancellation token, headers
+        var httpResponse = await _http.GetAsync(finalUrl, cancellationToken); // TODO: cancellation token, headers
         httpResponse.EnsureSuccessStatusCode();
         if (httpResponse.StatusCode == HttpStatusCode.NotFound) return null;
-        var html = await httpResponse.Content.ReadAsStringAsync();
+        var html = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
 
         var doc = await _parser.ParseDocumentAsync(html);
 
@@ -168,7 +169,7 @@ public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScrap
         {
             try
             {
-                return await ScrapeProduct(card, isOutlet, timestamp);
+                return await ScrapeProduct(card, isOutlet, timestamp, cancellationToken);
             }
             catch (Exception
                    ex)
@@ -190,9 +191,10 @@ public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScrap
         return new VistulaPageScraperResult(Products: products, MaxDisplayedPage: maxPageNumber);
     }
 
-    private async Task<ProductSnapshot?> ScrapeProduct(IElement productHtmlCard, bool isOutlet, DateTime timestamp)
+    private async Task<ProductSnapshot?> ScrapeProduct(IElement productHtmlCard, bool isOutlet, DateTime timestamp,
+        CancellationToken cancellationToken)
     {
-        await _semaphore.WaitAsync();
+        await _semaphore.WaitAsync(cancellationToken);
 
         var id = productHtmlCard.GetAttribute("data-id") ?? throw new Exception("Id is null");
         var name = productHtmlCard.GetAttribute("data-item-name")?.ToSentenceCaseInvariant() ??
@@ -216,7 +218,7 @@ public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScrap
 
         try
         {
-            var response = await _http.GetAsync(href);
+            var response = await _http.GetAsync(href, cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
@@ -234,7 +236,7 @@ public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScrap
             }
 
             response.EnsureSuccessStatusCode();
-            productSiteHtml = await _http.GetStringAsync(href);
+            productSiteHtml = await response.Content.ReadAsStringAsync(cancellationToken);
         }
         finally
         {
@@ -328,7 +330,7 @@ public class VistulaScraper(IHttpClientFactory httpFactory, ILogger<VistulaScrap
         var imageUrls = imagesSelector.Select(htmlDivWithImage =>
         {
             if (htmlDivWithImage.ClassName != null && htmlDivWithImage.ClassName.Contains("swiper")) return null;
-            
+
             var imageSelector = htmlDivWithImage.QuerySelector("div > picture > img");
             var imageUrl = imageSelector?.GetAttribute("src");
             return imageUrl;

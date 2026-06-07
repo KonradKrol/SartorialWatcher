@@ -20,7 +20,7 @@ public static class Endpoints
 
         app.MapPost("/scrape", async ([FromBody] ScrapeDto scrapeDto, HttpRequest request,
             IConfiguration configuration, ScrapeShopService scrapeShopService,
-            ILoggerFactory loggerFactory) =>
+            ILoggerFactory loggerFactory, CancellationToken cancellationToken) =>
         {
             var logger = loggerFactory.CreateLogger("Http.Scrape.Post");
 
@@ -41,7 +41,7 @@ public static class Endpoints
                     Url = scrapeDto.Url,
                 };
 
-                var products = (await scrapeShopService.Invoke(scrapingConfiguration)).ToList();
+                var products = (await scrapeShopService.Invoke(scrapingConfiguration, cancellationToken)).ToList();
                 logger.LogInformation("Scraped {ProductsCount}", products.Count);
                 return Results.Ok(new { ScrapedProductsCount = products.Count });
             }

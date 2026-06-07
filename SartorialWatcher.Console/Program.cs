@@ -28,4 +28,12 @@ var runner =
     scope.ServiceProvider
         .GetRequiredService<ConsoleAppRunner>();
 
-await runner.RunAsync();
+using var cts = new CancellationTokenSource();
+
+Console.CancelKeyPress += (_, e) =>
+{
+    e.Cancel = true;
+    cts.Cancel();
+};
+
+await runner.RunAsync(cts.Token);

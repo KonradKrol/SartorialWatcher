@@ -8,9 +8,11 @@ using SartorialWatcher.Core.Utils;
 
 namespace SartorialWatcher.Core.Scrapers;
 
-public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScraper
+public class BytomScraper(IHttpClientFactory httpFactory, ILogger<BytomScraper> logger) : IScraper
 {
-    public async Task<ScraperResult> ScrapeAsync(ScrapingContext context)
+    private readonly HttpClient _http = httpFactory.CreateClient("scraper");
+
+    public async Task<ScraperResult> ScrapeAsync(ScrapingContext context, CancellationToken cancellationToken)
     {
         var baseUrl = context.Url;
         var isOutlet = baseUrl.ToString().Contains("outlet");
@@ -33,7 +35,7 @@ public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScra
                        ))
                 {
                     logger.LogInformation("Scraping a page");
-                    var pageProducts = await ScrapePage(baseUrl, isOutlet, page);
+                    var pageProducts = await ScrapePage(baseUrl, isOutlet, page, cancellationToken);
                     logger.LogInformation("Scrapped {ProductsCount} products", pageProducts.Count);
                     if (pageProducts.Count == 0)
                     {
@@ -51,10 +53,10 @@ public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScra
         }
     }
 
-    private async Task<List<ProductSnapshot>> ScrapePage(Uri baseUrl, bool isOutlet, int page)
+    private async Task<List<ProductSnapshot>> ScrapePage(Uri baseUrl, bool isOutlet, int page, CancellationToken cancellationToken)
     {
         var finalUrl = QueryHelpers.AddQueryString(baseUrl.ToString(), "page", page.ToString());
-        var html = await http.GetStringAsync(finalUrl); // TODO: cancellation token, headers
+        var html = await _http.GetStringAsync(finalUrl, cancellationToken);
         var doc = await new HtmlParser().ParseDocumentAsync(html);
 
         var timestamp = DateTime.Now;
@@ -69,7 +71,8 @@ public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScra
         foreach (var card in cards)
         {
             var id = card.GetAttribute("data-id") ?? throw new Exception("Id is null");
-            var name = card.GetAttribute("data-item-name")?.ToSentenceCaseInvariant() ?? throw new Exception("Name is null");
+            var name = card.GetAttribute("data-item-name")?.ToSentenceCaseInvariant() ??
+                       throw new Exception("Name is null");
             var currentPriceString =
                 card.GetAttribute("data-price") ?? throw new Exception("Current price is null");
             var currentPrice = decimal.Parse(currentPriceString);
@@ -84,7 +87,7 @@ public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScra
 
             var href = card.QuerySelector("a")?.GetAttribute("href") ?? throw new Exception("Href is null");
 
-            var productSiteHtml = await http.GetStringAsync(href);
+            var productSiteHtml = await _http.GetStringAsync(href, cancellationToken);
             var productDoc = await new HtmlParser().ParseDocumentAsync(productSiteHtml);
 
             var sizesSelector = productDoc.QuerySelectorAll(
@@ -119,12 +122,12 @@ public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScra
                 {
                     tags.Add("Len");
                 }
-                
+
                 if (materialContent.Contains("Poliamid") || materialContent.Contains("poliamid"))
                 {
                     tags.Add("Poliamid");
                 }
-            
+
                 if (materialContent.Contains("Elastan") || materialContent.Contains("elastan"))
                 {
                     tags.Add("Elastan");
@@ -152,7 +155,7 @@ public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScra
                 {
                     tags.Add("Two ply");
                 }
-                
+
                 if (Regex.IsMatch(materialContent, @"\beasy care\b", RegexOptions.IgnoreCase))
                 {
                     tags.Add("Easy care");
@@ -163,7 +166,7 @@ public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScra
                     tags.Add("Wełna");
                 }
             }
-            
+
             var imagesSelector =
                 productDoc.QuerySelectorAll(
                     ".row.desktop-part-gallery > div");
@@ -174,7 +177,7 @@ public class BytomScraper(HttpClient http, ILogger<BytomScraper> logger) : IScra
                 var imageUrl = imageSelector?.GetAttribute("src");
                 return imageUrl;
             }).Where(url => url is not null).Cast<string>();
-            
+
             var description = productDoc.QuerySelector("#collapse_description > div > p:nth-child(1)")?.TextContent?
                 .Trim();
 
