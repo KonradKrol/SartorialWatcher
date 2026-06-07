@@ -36,18 +36,20 @@ public class ScrapeShopFunction
             .AddEnvironmentVariables()
             .AddAppConfiguration(environment)
             .Build();
-        
+
         services.AddLogging();
 
         services.AddSartorialWatcher(configuration, environment);
-        
+
         services.AddSingleton<IConfiguration>(configuration);
 
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    public async Task FunctionHandler(SQSEvent evnt, ILambdaContext context, CancellationToken cancellationToken)
+    public async Task FunctionHandler(SQSEvent evnt, ILambdaContext context)
     {
+        using var cancellationTokenSource =
+            new CancellationTokenSource(context.RemainingTime - TimeSpan.FromSeconds(5));
         foreach (var message in evnt.Records)
         {
             var body = message.Body;
@@ -69,7 +71,8 @@ public class ScrapeShopFunction
                     Url = job.Url,
                 };
 
-                var products = (await _scrapeShopService.Invoke(scrapingConfiguration, cancellationToken)).ToList();
+                var products = (await _scrapeShopService.Invoke(scrapingConfiguration, cancellationTokenSource.Token))
+                    .ToList();
                 _logger.LogInformation("Scraped {ProductsCount} and tried to save", products.Count);
             }
         }
